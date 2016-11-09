@@ -8,6 +8,6 @@ import org.springframework.data.repository.CrudRepository;
 @Transactional
 public interface PawsRepository extends CrudRepository<Paws, Long> {
 
-    public Paws findByName(String name);
+    public Iterable<Paws> findByName(String name);
 
 }

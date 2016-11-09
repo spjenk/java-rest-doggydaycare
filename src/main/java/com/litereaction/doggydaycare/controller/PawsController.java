@@ -26,6 +26,16 @@ public class PawsController {
         return pawsRepository.findAll();
     }
 
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    public Paws get(@RequestParam(value = "id", required = true, defaultValue = "0") long id) {
+        return pawsRepository.findOne(id);
+    }
+
+    @RequestMapping(value = "/name/{name}", method = RequestMethod.GET)
+    public Iterable<Paws> get(@RequestParam(value = "name", required = true) String name) {
+        return pawsRepository.findByName(name);
+    }
+
     @RequestMapping(value = "/save", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "Register a new pet")
     public ResponseEntity save(@RequestBody Paws paws) {
