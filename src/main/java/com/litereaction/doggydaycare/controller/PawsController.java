@@ -23,7 +23,10 @@ public class PawsController {
     @RequestMapping(method = RequestMethod.GET)
     @ApiOperation(value = "Get all the pets")
     public Iterable<Paws> get() {
-        return pawsRepository.findAll();
+
+        Iterable<Paws> paws = pawsRepository.findAll();
+        logPawsRetrieved(paws);
+        return paws;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -33,7 +36,11 @@ public class PawsController {
 
     @RequestMapping(value = "/name/{name}", method = RequestMethod.GET)
     public Iterable<Paws> get(@RequestParam(value = "name", required = true) String name) {
-        return pawsRepository.findByName(name);
+
+        Iterable<Paws> paws = pawsRepository.findByName(name);
+        logPawsRetrieved(paws);
+
+        return paws;
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -66,6 +73,11 @@ public class PawsController {
         log.info("Pet removed from registry:" + paws.toString());
 
         return ResponseEntity.ok().build();
+    }
+
+    private void logPawsRetrieved(Iterable<Paws> paws) {
+        log.info("Retrieving Paws");
+        paws.forEach(paw -> log.debug("Found: " + paw.getName()));
     }
 
 }
