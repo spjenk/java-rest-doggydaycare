@@ -59,18 +59,16 @@ public class PawsController {
         return ResponseEntity.ok().build();
     }
 
-    @RequestMapping(value = "/delete", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
     @ApiOperation(value = "Remove a pet from the repository")
-    public ResponseEntity delete(@RequestBody Paws paws) {
+    public ResponseEntity delete(@RequestParam(value = "id", required = true) long id) {
 
         try {
-            pawsRepository.delete(paws);
+            pawsRepository.delete(id);
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
-
-        log.info("Pet removed from registry:" + paws.toString());
 
         return ResponseEntity.ok().build();
     }

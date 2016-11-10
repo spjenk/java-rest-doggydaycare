@@ -1,9 +1,6 @@
 package com.litereaction.doggydaycare.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "paws")
@@ -16,6 +13,8 @@ public class Paws {
     private String name;
 
     private int age;
+
+    private long caregiverId;
 
     public Paws() { }
 
@@ -46,5 +45,13 @@ public class Paws {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public long getCaregiverId() {
+        return caregiverId;
+    }
+
+    public void setCaregiverId(long caregiverId) {
+        this.caregiverId = caregiverId;
     }
 }
