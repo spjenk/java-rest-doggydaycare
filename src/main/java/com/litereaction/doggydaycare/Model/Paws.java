@@ -14,6 +14,7 @@ public class Paws {
 
     private int age;
 
+    @ManyToOne
     private long caregiverId;
 
     public Paws() { }

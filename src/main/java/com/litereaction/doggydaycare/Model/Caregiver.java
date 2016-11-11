@@ -8,6 +8,12 @@ import java.util.List;
 @Table(name = "caregiver")
 public class Caregiver {
 
+    public Caregiver() {}
+
+    public Caregiver(String name) {
+        this.name = name;
+    }
+
     @Id
     @GeneratedValue
     private long id;
