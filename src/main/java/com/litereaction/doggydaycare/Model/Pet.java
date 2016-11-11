@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "paws")
-public class Paws {
+public class Pet {
 
     @Id
     @GeneratedValue
@@ -14,12 +14,11 @@ public class Paws {
 
     private int age;
 
-    @ManyToOne
     private long caregiverId;
 
-    public Paws() { }
+    public Pet() { }
 
-    public Paws(String name, int age) {
+    public Pet(String name, int age) {
         this.name = name;
         this.age = age;
     }

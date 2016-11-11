@@ -1,6 +1,5 @@
 package com.litereaction.doggydaycare.Model;
 
-import javax.annotation.Generated;
 import javax.persistence.*;
 import java.util.List;
 
@@ -20,8 +19,8 @@ public class Caregiver {
 
     private String name;
 
-    @OneToMany(mappedBy="id", targetEntity=Paws.class, fetch=FetchType.EAGER)
-    private List<Paws> pets;
+    @OneToMany(mappedBy="id", targetEntity=Pet.class, fetch=FetchType.EAGER)
+    private List<Pet> pets;
 
     public long getId() {
         return id;
@@ -39,11 +38,11 @@ public class Caregiver {
         this.name = name;
     }
 
-    public List<Paws> getPets() {
+    public List<Pet> getPets() {
         return pets;
     }
 
-    public void setPets(List<Paws> pets) {
+    public void setPets(List<Pet> pets) {
         this.pets = pets;
     }
 }

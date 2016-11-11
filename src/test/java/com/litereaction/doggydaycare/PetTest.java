@@ -1,10 +1,10 @@
 package com.litereaction.doggydaycare;
 
-import com.litereaction.doggydaycare.Model.Paws;
+import com.litereaction.doggydaycare.Model.Pet;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PawsTest {
+public class PetTest {
 
     private static final long DEFAULT_ID = 0;
     private static final String DEFAULT_NAME = "Jack";
@@ -15,12 +15,12 @@ public class PawsTest {
     public void createPawsFromConstructorTest() {
 
         //when
-        Paws paws = new Paws(DEFAULT_NAME, DEFAULT_AGE);
+        Pet pet = new Pet(DEFAULT_NAME, DEFAULT_AGE);
 
         //then
         Assert.assertEquals(DEFAULT_ID, 0);
-        Assert.assertEquals(DEFAULT_NAME, paws.getName());
-        Assert.assertEquals(DEFAULT_AGE, paws.getAge());
+        Assert.assertEquals(DEFAULT_NAME, pet.getName());
+        Assert.assertEquals(DEFAULT_AGE, pet.getAge());
         Assert.assertEquals(DEFAULT_CAREGIVER_ID, 0);
     }
 
@@ -32,16 +32,16 @@ public class PawsTest {
         long caregiver_id = 2;
 
         //when
-        Paws paws = new Paws();
-        paws.setId(id);
-        paws.setName(DEFAULT_NAME);
-        paws.setAge(DEFAULT_AGE);
-        paws.setCaregiverId(caregiver_id);
+        Pet pet = new Pet();
+        pet.setId(id);
+        pet.setName(DEFAULT_NAME);
+        pet.setAge(DEFAULT_AGE);
+        pet.setCaregiverId(caregiver_id);
 
         //then
-        Assert.assertEquals(id, paws.getId());
-        Assert.assertEquals(DEFAULT_NAME, paws.getName());
-        Assert.assertEquals(DEFAULT_AGE, paws.getAge());
-        Assert.assertEquals(caregiver_id, paws.getCaregiverId());
+        Assert.assertEquals(id, pet.getId());
+        Assert.assertEquals(DEFAULT_NAME, pet.getName());
+        Assert.assertEquals(DEFAULT_AGE, pet.getAge());
+        Assert.assertEquals(caregiver_id, pet.getCaregiverId());
     }
 }

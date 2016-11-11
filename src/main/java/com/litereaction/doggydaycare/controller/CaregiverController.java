@@ -1,7 +1,6 @@
 package com.litereaction.doggydaycare.controller;
 
 import com.litereaction.doggydaycare.Model.Caregiver;
-import com.litereaction.doggydaycare.Model.Paws;
 import com.litereaction.doggydaycare.repository.CaregiverRepository;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -28,12 +27,13 @@ public class CaregiverController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @ApiOperation(value = "Get Caregiver by id")
     public Caregiver get(@RequestParam(value = "id", required = true, defaultValue = "0") long id) {
         return caregiverRepository.findOne(id);
     }
 
-    @RequestMapping(value = "/save", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(value = "Register a new paws caregiver")
+    @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "Register a caregiver")
     public ResponseEntity save(@RequestBody Caregiver caregiver) {
 
         try {
@@ -46,8 +46,22 @@ public class CaregiverController {
         return ResponseEntity.ok().build();
     }
 
-    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
-    @ApiOperation(value = "Remove a paws caregiver from the repository")
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "Register/update a caregiver")
+    public ResponseEntity save(@RequestParam(value = "id", required = true, defaultValue = "0") long id, @RequestBody Caregiver caregiver) {
+
+        try {
+            caregiverRepository.save(caregiver);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @ApiOperation(value = "Remove a caregiver")
     public ResponseEntity delete(@RequestParam(value = "id", required = true) long id) {
 
         try {

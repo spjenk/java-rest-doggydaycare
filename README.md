@@ -1,10 +1,13 @@
-#Paws service for Doggy Day Care site 
+#Account service for Puppy Day Care site   ![Paws](assets/paws.png "Logo Title Text 1") 
+**Utilising SpringBoot framework to create Account services**
 
-Utilising Spring framework CrudRepository to create Paws Repository 
+The purpose of this repository is to create Rest APIs using Spring and Hibernate that follows coding and rest api standards and patterns
+The API supports the creation and maintenance of pets, caregivers(owners) and other account related items for a fictional Doggy Day Care business 
 
 ## Running the API 
 gradle bootRun 
 
-* Requires MySql database
+note: Requires MySql database
 
-Swagger enabled: http://localhost:8080/swagger-ui.html#/paws-controller
+## API Documentation
+Swagger enabled: http://localhost:8080/swagger-ui.html

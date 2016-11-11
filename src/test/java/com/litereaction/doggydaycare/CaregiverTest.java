@@ -1,7 +1,7 @@
 package com.litereaction.doggydaycare;
 
 import com.litereaction.doggydaycare.Model.Caregiver;
-import com.litereaction.doggydaycare.Model.Paws;
+import com.litereaction.doggydaycare.Model.Pet;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,8 +49,8 @@ public class CaregiverTest {
         Caregiver caregiver = new Caregiver(DEFAULT_NAME);
         String jack = "Jack";
         int age = 1;
-        Paws paw = new Paws(jack, age);
-        List<Paws> paws = new ArrayList<Paws>();
+        Pet paw = new Pet(jack, age);
+        List<Pet> paws = new ArrayList<Pet>();
         paws.add(paw);
 
         //when
