@@ -3,7 +3,7 @@ package com.litereaction.doggydaycare.Model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "paws")
+@Table(name = "pets")
 public class Pet {
 
     @Id
@@ -14,7 +14,8 @@ public class Pet {
 
     private int age;
 
-    private long caregiverId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Owner owner;
 
     public Pet() { }
 
@@ -47,11 +48,11 @@ public class Pet {
         this.age = age;
     }
 
-    public long getCaregiverId() {
-        return caregiverId;
+    public Owner getOwner() {
+        return owner;
     }
 
-    public void setCaregiverId(long caregiverId) {
-        this.caregiverId = caregiverId;
+    public void setOwner(Owner owner) {
+        this.owner = owner;
     }
 }

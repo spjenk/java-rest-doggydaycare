@@ -1,5 +1,6 @@
-package com.litereaction.doggydaycare;
+package com.litereaction.doggydaycare.model;
 
+import com.litereaction.doggydaycare.Model.Owner;
 import com.litereaction.doggydaycare.Model.Pet;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,19 +30,20 @@ public class PetTest {
 
         //given
         long id = 1;
-        long caregiver_id = 2;
+        Owner owner = new Owner();
+        owner.setName("Jack");
 
         //when
         Pet pet = new Pet();
         pet.setId(id);
         pet.setName(DEFAULT_NAME);
         pet.setAge(DEFAULT_AGE);
-        pet.setCaregiverId(caregiver_id);
+        pet.setOwner(owner);
 
         //then
         Assert.assertEquals(id, pet.getId());
         Assert.assertEquals(DEFAULT_NAME, pet.getName());
         Assert.assertEquals(DEFAULT_AGE, pet.getAge());
-        Assert.assertEquals(caregiver_id, pet.getCaregiverId());
+        Assert.assertEquals(pet.getOwner().getName(), owner.getName());
     }
 }
