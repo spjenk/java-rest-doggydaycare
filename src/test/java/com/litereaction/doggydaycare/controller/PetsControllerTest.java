@@ -33,23 +33,26 @@ public class PetsControllerTest {
 
     @Before
     public void setup() {
-        this.petRepository.deleteAllInBatch();
-        this.petRepository.save(new Pet("Spot", 1));
-        this.petRepository.save(new Pet("Rover", 2));
     }
 
     @Test
     public void findAllPetsTest() throws Exception {
 
+        Pet spot = this.petRepository.save(new Pet("Spot", 1));
+        Pet rover = this.petRepository.save(new Pet("Rover", 2));
+
         ResponseEntity<String> response = this.restTemplate.getForEntity("/pets", String.class);
         log.info("Found Pet:" + response.getBody());
         assertNotNull(response.getBody());
-        assertThat(response.getBody(), containsString("Spot"));
-        assertThat(response.getBody(), containsString("Rover"));
+        assertThat(response.getBody(), containsString("\"id\":" + spot.getId() + ",\"name\":\"Spot\""));
+        assertThat(response.getBody(), containsString("\"id\":" + rover.getId() + ",\"name\":\"Rover\""));
     }
 
     @Test
     public void findPetByNameTest() throws Exception {
+
+        this.petRepository.save(new Pet("Spot", 1));
+        this.petRepository.save(new Pet("Rover", 2));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/pets?name=Spot", String.class);
         log.info("Found Pet:" + response.getBody());

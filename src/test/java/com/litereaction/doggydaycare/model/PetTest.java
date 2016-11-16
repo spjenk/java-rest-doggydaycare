@@ -19,7 +19,7 @@ public class PetTest {
         Pet pet = new Pet(DEFAULT_NAME, DEFAULT_AGE);
 
         //then
-        Assert.assertEquals(DEFAULT_ID, 0);
+        Assert.assertEquals(DEFAULT_ID, pet.getId());
         Assert.assertEquals(DEFAULT_NAME, pet.getName());
         Assert.assertEquals(DEFAULT_AGE, pet.getAge());
         Assert.assertEquals(DEFAULT_CAREGIVER_ID, 0);
