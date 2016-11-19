@@ -1,7 +1,5 @@
 package com.litereaction.doggydaycare.model;
 
-import com.litereaction.doggydaycare.Model.Owner;
-import com.litereaction.doggydaycare.Model.Pet;
 import org.junit.Assert;
 import org.junit.Test;
 

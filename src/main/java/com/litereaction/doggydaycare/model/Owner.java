@@ -1,9 +1,8 @@
-package com.litereaction.doggydaycare.Model;
+package com.litereaction.doggydaycare.model;
 
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Table(name = "owner")
@@ -12,8 +11,12 @@ public class Owner {
     @Id
     @GeneratedValue
     private long id;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
     private String name;
+
     private String displayName;
 
     public Owner() {

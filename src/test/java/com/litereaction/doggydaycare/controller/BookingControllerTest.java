@@ -1,7 +1,7 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.Model.Booking;
-import com.litereaction.doggydaycare.Model.Pet;
+import com.litereaction.doggydaycare.model.Booking;
+import com.litereaction.doggydaycare.model.Pet;
 import com.litereaction.doggydaycare.repository.BookingRepository;
 import com.litereaction.doggydaycare.repository.PetRepository;
 import org.junit.Before;
@@ -15,8 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Date;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;

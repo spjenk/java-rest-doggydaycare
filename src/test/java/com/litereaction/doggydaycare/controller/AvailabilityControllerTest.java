@@ -1,11 +1,7 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.Model.Availability;
-import com.litereaction.doggydaycare.Model.Booking;
-import com.litereaction.doggydaycare.Model.Pet;
+import com.litereaction.doggydaycare.model.Availability;
 import com.litereaction.doggydaycare.repository.AvailabilityRepository;
-import com.litereaction.doggydaycare.repository.BookingRepository;
-import com.litereaction.doggydaycare.repository.PetRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

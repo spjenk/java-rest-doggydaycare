@@ -1,6 +1,8 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.Model.Owner;
+import com.litereaction.doggydaycare.exceptions.NotFoundException;
+import com.litereaction.doggydaycare.util.httpUtil;
+import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -28,6 +30,13 @@ public class OwnersController {
     @Autowired
     OwnerRepository ownerRepository;
 
+    /**
+     * Get all owners if optional parameters not set
+     *
+     * @param name optional: get all owners with matching name
+     * @param email optional: get user with matching email address
+     * @return List of Owners
+     */
     @RequestMapping(method = RequestMethod.GET)
     @ApiOperation(value = "Get all Caregivers")
     public List<Owner> get(@ApiParam(value = "name", required = false) String name, @ApiParam(value = "email", required = false) String email) {
@@ -45,15 +54,30 @@ public class OwnersController {
         return owners;
     }
 
+    /**
+     * Get owner by ID
+     *
+     * @param id mandatory: id of the owner
+     * @return Matching Owner
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    @ApiOperation(value = "Get Owner by id")
-    public Owner get(@RequestParam(value = "id", required = true, defaultValue = "0") long id) {
-        return ownerRepository.findOne(id);
+    @ApiOperation(value = "Get Owner by id ")
+    public ResponseEntity<Owner> get(@PathVariable long id) {
+
+        validateOwner(id);
+        Owner owner = ownerRepository.findOne(id);
+        return new ResponseEntity<Owner>(owner, httpUtil.getHttpHeaders(), HttpStatus.OK);
     }
 
+    /**
+     * Create a new owner
+     *
+     * @param owner Owner
+     * @return ResponseEntity and Owner in body
+     */
     @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "Register a owner")
-    public ResponseEntity<Void> save(@RequestBody Owner owner) {
+    public ResponseEntity<Owner> save(@RequestBody Owner owner) {
 
         try {
             Owner result = ownerRepository.save(owner);
@@ -63,38 +87,47 @@ public class OwnersController {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(location);
-            return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+            return new ResponseEntity<Owner>(result, headers, HttpStatus.CREATED);
 
         } catch (Exception e) {
             log.error(e.getMessage());
-            return new ResponseEntity<Void>(getHttpHeaders(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<Owner>(owner, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
         }
-
     }
 
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
-    }
-
+    /**
+     * Update an existing owner
+     *
+     * @param id Mandatory: owner id
+     * @param owner Owner to update passed in request body
+     * @return
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(value = "Register/update a owner")
-    public ResponseEntity save(@RequestParam(value = "id", required = true, defaultValue = "0") long id, @RequestBody Owner owner) {
+    @ApiOperation(value = "update a owner")
+    public ResponseEntity<Owner> save(@PathVariable long id, @RequestBody Owner owner) {
+
+        validateOwner(id);
 
         try {
-            ownerRepository.save(owner);
+            Owner result = ownerRepository.save(owner);
+            return new ResponseEntity<Owner>(result, httpUtil.getHttpHeaders(), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             log.error(e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<Owner>(owner, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
         }
-
-        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Remove an owner
+     *
+     * @param id Mandatory: owner id
+     * @return ResponseEntity
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    @ApiOperation(value = "Remove a caregiver")
-    public ResponseEntity delete(@RequestParam(value = "id", required = true) long id) {
+    @ApiOperation(value = "Remove a owner")
+    public ResponseEntity delete(@PathVariable long id) {
+
+        validateOwner(id);
 
         try {
             ownerRepository.delete(id);
@@ -104,6 +137,12 @@ public class OwnersController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    private void validateOwner(long id) {
+        this.ownerRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(id));
+        log.info("Found owner:" + id);
     }
 
 }

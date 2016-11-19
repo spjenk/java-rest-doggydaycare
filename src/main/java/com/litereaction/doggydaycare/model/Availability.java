@@ -1,9 +1,8 @@
-package com.litereaction.doggydaycare.Model;
+package com.litereaction.doggydaycare.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.sql.Date;
 
 @Entity
 @Table(name = "availability")

@@ -1,7 +1,9 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.Model.Availability;
-import com.litereaction.doggydaycare.Model.Booking;
+import com.litereaction.doggydaycare.exceptions.NotFoundException;
+import com.litereaction.doggydaycare.util.httpUtil;
+import com.litereaction.doggydaycare.model.Availability;
+import com.litereaction.doggydaycare.model.Booking;
 import com.litereaction.doggydaycare.repository.AvailabilityRepository;
 import com.litereaction.doggydaycare.repository.BookingRepository;
 import io.swagger.annotations.ApiOperation;
@@ -9,6 +11,8 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +51,7 @@ public class BookingsController {
 
     @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "Make a booking")
-    public ResponseEntity save(@RequestBody Booking booking) {
+    public ResponseEntity<Booking> save(@RequestBody Booking booking) {
 
         try {
 
@@ -62,24 +66,28 @@ public class BookingsController {
                 availability.setAvailable(availability.getAvailable()-1);
                 availabilityRepository.save(availability);
 
-                return ResponseEntity.created(location).build();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setLocation(location);
+                return new ResponseEntity<Booking>(result, headers, HttpStatus.CREATED);
             }
 
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-        return ResponseEntity.badRequest().build();
+        return new ResponseEntity<Booking>(booking, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ApiOperation(value = "Get booking by id")
-    public Booking get(@RequestParam(value = "id", required = true, defaultValue = "0") long id) {
-        return bookingRepository.findOne(id);
+    public ResponseEntity<Booking> get(@PathVariable long id) {
+        validateBookingExists(id);
+        Booking booking = bookingRepository.findOne(id);
+        return new ResponseEntity<Booking>(booking, httpUtil.getHttpHeaders(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ApiOperation(value = "Cancel a booking")
-    public ResponseEntity delete(@RequestParam(value = "id", required = true) long id) {
+    public ResponseEntity delete(@PathVariable long id) {
 
         try {
 
@@ -98,6 +106,12 @@ public class BookingsController {
             log.error(e.getMessage());
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    private void validateBookingExists(long id) {
+        this.bookingRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(id));
+        log.info("Found booking:" + id);
     }
 
 }

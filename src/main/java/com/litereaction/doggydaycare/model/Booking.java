@@ -1,8 +1,7 @@
-package com.litereaction.doggydaycare.Model;
+package com.litereaction.doggydaycare.model;
 
 
 import javax.persistence.*;
-import java.util.Date;
 
 @Entity
 @Table(name = "booking")

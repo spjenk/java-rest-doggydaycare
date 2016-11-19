@@ -1,12 +1,16 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.Model.Pet;
+import com.litereaction.doggydaycare.exceptions.NotFoundException;
+import com.litereaction.doggydaycare.util.httpUtil;
+import com.litereaction.doggydaycare.model.Pet;
 import com.litereaction.doggydaycare.repository.PetRepository;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -41,45 +45,54 @@ public class PetsController {
         return pets;
     }
 
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @ApiOperation(value = "Get pet by id")
+    public ResponseEntity<Pet> get(@PathVariable long id) {
+        validatePetExists(id);
+        Pet pet = petRepository.findOne(id);
+        return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.OK);
+    }
+
     @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "Register/update a new pet")
-    public ResponseEntity save(@RequestBody Pet pet) {
+    public ResponseEntity<Pet> save(@RequestBody Pet pet) {
 
         try {
             Pet result = petRepository.save(pet);
 
             URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                     .buildAndExpand(result.getId()).toUri();
-            return ResponseEntity.created(location).build();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(location);
+
+            return new ResponseEntity<Pet>(result, headers, HttpStatus.CREATED);
 
         } catch (Exception e) {
             log.error(e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    @ApiOperation(value = "Get pet by id")
-    public Pet get(@RequestParam(value = "id", required = true, defaultValue = "0") long id) {
-        return petRepository.findOne(id);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     @ApiOperation(value = "Update pet details")
-    public ResponseEntity save(@RequestParam(value = "id", required = true) long id, @RequestBody Pet pet) {
+    public ResponseEntity<Pet> save(@PathVariable long id, @RequestBody Pet pet) {
+
+        validatePetExists(id);
 
         try {
-            pet = petRepository.save(pet);
-            return ResponseEntity.ok().build();
+            Pet result = petRepository.save(pet);
+            return new ResponseEntity<Pet>(result, httpUtil.getHttpHeaders(), HttpStatus.CREATED);
         } catch (Exception e) {
             log.error(e.getMessage());
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
         }
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ApiOperation(value = "Remove a pet from the repository")
-    public ResponseEntity delete(@RequestParam(value = "id", required = true) long id) {
+    public ResponseEntity delete(@PathVariable long id) {
+
+        validatePetExists(id);
 
         try {
             petRepository.delete(id);
@@ -88,6 +101,12 @@ public class PetsController {
             log.error(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    private void validatePetExists(long id) {
+        this.petRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(id));
+        log.info("Found pet:" + id);
     }
 
 }

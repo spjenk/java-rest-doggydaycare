@@ -1,6 +1,6 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.Model.Availability;
+import com.litereaction.doggydaycare.model.Availability;
 import com.litereaction.doggydaycare.repository.AvailabilityRepository;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
