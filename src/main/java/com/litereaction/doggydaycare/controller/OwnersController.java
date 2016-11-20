@@ -110,7 +110,7 @@ public class OwnersController {
 
         try {
             Owner result = ownerRepository.save(owner);
-            return new ResponseEntity<Owner>(result, httpUtil.getHttpHeaders(), HttpStatus.ACCEPTED);
+            return new ResponseEntity<Owner>(result, httpUtil.getHttpHeaders(), HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity<Owner>(owner, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);

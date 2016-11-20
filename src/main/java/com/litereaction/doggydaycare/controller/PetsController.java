@@ -81,7 +81,7 @@ public class PetsController {
 
         try {
             Pet result = petRepository.save(pet);
-            return new ResponseEntity<Pet>(result, httpUtil.getHttpHeaders(), HttpStatus.CREATED);
+            return new ResponseEntity<Pet>(result, httpUtil.getHttpHeaders(), HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);

@@ -10,4 +10,9 @@ public class NotFoundException extends RuntimeException {
 
         super("could not find item with id: '" + id + "'.");
     }
+
+    public NotFoundException(String id) {
+
+        super("could not find item with id: '" + id + "'.");
+    }
 }

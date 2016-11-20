@@ -19,10 +19,10 @@ public class Availability {
 
     }
 
-    public Availability(String date, int max, int available){
+    public Availability(String date, int max){
         this.date = date;
         this.max = max;
-        this.available = available;
+        this.available = max;
     }
 
     public String getDate() { return date; }

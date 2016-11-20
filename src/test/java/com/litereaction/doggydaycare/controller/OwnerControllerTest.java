@@ -13,18 +13,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Collections;
-
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class OwnerControllerTest {
 
-    final String BASE_URL = "/owners/";
+    private static final String BASE_URL = "/owners/";
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -89,7 +86,7 @@ public class OwnerControllerTest {
         Owner owner = new Owner(ownerName, ownerEmail);
 
         ResponseEntity<Owner> response =
-                this.restTemplate.postForEntity(BASE_URL, owner, Owner.class, Collections.EMPTY_MAP);
+                this.restTemplate.postForEntity(BASE_URL, owner, Owner.class);
 
         assertThat(response.getStatusCode() , equalTo(HttpStatus.CREATED));
         assertNotNull(response.getBody());

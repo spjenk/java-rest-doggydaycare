@@ -5,8 +5,6 @@ import com.litereaction.doggydaycare.repository.PetRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -23,7 +21,7 @@ import static org.junit.Assert.assertThat;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class PetsControllerTest {
 
-    final String BASE_URL = "/pets/";
+    private static final String BASE_URL = "/pets/";
 
     @Autowired
     private TestRestTemplate restTemplate;

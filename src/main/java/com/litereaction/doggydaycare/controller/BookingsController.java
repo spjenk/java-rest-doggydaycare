@@ -1,5 +1,6 @@
 package com.litereaction.doggydaycare.controller;
 
+import com.litereaction.doggydaycare.exceptions.NoAvailabilityException;
 import com.litereaction.doggydaycare.exceptions.NotFoundException;
 import com.litereaction.doggydaycare.util.httpUtil;
 import com.litereaction.doggydaycare.model.Availability;
@@ -37,7 +38,7 @@ public class BookingsController {
 
     @RequestMapping(method = RequestMethod.GET)
     @ApiOperation(value = "Get bookings")
-    public List<Booking> get(@ApiParam(value = "name", required = false) String date) {
+    public List<Booking> get(@ApiParam(value = "name") String date) {
 
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -53,23 +54,22 @@ public class BookingsController {
     @ApiOperation(value = "Make a booking")
     public ResponseEntity<Booking> save(@RequestBody Booking booking) {
 
+        Availability availability = getAndValidateAvailability(booking.getDate());
+
         try {
 
-            Availability availability = availabilityRepository.findOne(booking.getDate());
+            Booking result = bookingRepository.save(booking);
 
-            if (availability.getAvailable() > 0) {
-                Booking result = bookingRepository.save(booking);
+            URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                    .buildAndExpand(result.getId()).toUri();
 
-                URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                        .buildAndExpand(result.getId()).toUri();
+            availability.setAvailable(availability.getAvailable() - 1);
+            availabilityRepository.save(availability);
 
-                availability.setAvailable(availability.getAvailable()-1);
-                availabilityRepository.save(availability);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(location);
+            return new ResponseEntity<Booking>(result, headers, HttpStatus.CREATED);
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.setLocation(location);
-                return new ResponseEntity<Booking>(result, headers, HttpStatus.CREATED);
-            }
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -89,18 +89,18 @@ public class BookingsController {
     @ApiOperation(value = "Cancel a booking")
     public ResponseEntity delete(@PathVariable long id) {
 
+        validateBookingExists(id);
+
         try {
 
             Booking booking = bookingRepository.findOne(id);
-            if (booking != null) {
-                bookingRepository.delete(id);
+            bookingRepository.delete(id);
 
-                Availability availability = availabilityRepository.findOne(booking.getDate());
-                availability.setAvailable(availability.getAvailable() + 1);
-                availabilityRepository.save(availability);
+            Availability availability = availabilityRepository.findOne(booking.getDate());
+            availability.setAvailable(availability.getAvailable() + 1);
+            availabilityRepository.save(availability);
 
-                return ResponseEntity.ok().build();
-            }
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -112,6 +112,20 @@ public class BookingsController {
         this.bookingRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(id));
         log.info("Found booking:" + id);
+    }
+
+    private Availability getAndValidateAvailability(String date) {
+
+        this.availabilityRepository.findByDate(date).orElseThrow(
+                () -> new NotFoundException(date));
+
+        Availability availability = availabilityRepository.findOne(date);
+        if (availability.getAvailable() <= 0) {
+            throw new NoAvailabilityException(date);
+        }
+
+        log.info("Has availability for booking on:" + date);
+        return availability;
     }
 
 }

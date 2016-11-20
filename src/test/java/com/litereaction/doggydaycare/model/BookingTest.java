@@ -9,14 +9,14 @@ public class BookingTest {
     public void createBookingFromConstructorTest() {
 
         //when
-        String NAME = "Spot";
-        String DATE = "19991231";
-        Booking booking = new Booking(DATE, new Pet(NAME, 1));
+        String name = "Spot";
+        String date = "19991231";
+        Booking booking = new Booking(date, new Pet(name, 1));
 
         //then
         Assert.assertEquals(0, booking.getId());
-        Assert.assertEquals(DATE, booking.getDate());
-        Assert.assertEquals(NAME, booking.getPet().getName());
+        Assert.assertEquals(date, booking.getDate());
+        Assert.assertEquals(name, booking.getPet().getName());
     }
 
     @Test
