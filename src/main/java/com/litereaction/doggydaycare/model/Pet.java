@@ -1,5 +1,7 @@
 package com.litereaction.doggydaycare.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 @Entity
@@ -14,7 +16,8 @@ public class Pet {
 
     private int age;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Owner owner;
 
     public Pet() { }

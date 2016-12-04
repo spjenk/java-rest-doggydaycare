@@ -31,6 +31,7 @@ public class PetsControllerTest {
 
     @Before
     public void setup() {
+        this.petRepository.deleteAllInBatch();
     }
 
     @Test
@@ -73,22 +74,6 @@ public class PetsControllerTest {
 
         Pet petResponse = response.getBody();
         assertThat(petResponse.getId(), equalTo(pet.getId()));
-        assertThat(petResponse.getName(), equalTo(petName));
-        assertThat(petResponse.getAge(), equalTo(petAge));
-    }
-
-    @Test
-    public void createPetTest() throws Exception {
-
-        String petName = "Spot";
-        int petAge = 5;
-        Pet pet = new Pet(petName, petAge);
-
-        ResponseEntity<Pet> response = this.restTemplate.postForEntity(BASE_URL, pet, Pet.class);
-        assertThat(response.getStatusCode() , equalTo(HttpStatus.CREATED));
-        assertNotNull(response.getBody());
-
-        Pet petResponse = response.getBody();
         assertThat(petResponse.getName(), equalTo(petName));
         assertThat(petResponse.getAge(), equalTo(petAge));
     }

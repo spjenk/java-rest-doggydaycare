@@ -13,7 +13,7 @@ public class Booking {
 
     private String date;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Pet pet;
 
     public Booking() {

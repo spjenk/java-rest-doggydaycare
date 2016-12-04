@@ -53,26 +53,6 @@ public class PetsController {
         return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(value = "Register/update a new pet")
-    public ResponseEntity<Pet> save(@RequestBody Pet pet) {
-
-        try {
-            Pet result = petRepository.save(pet);
-
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                    .buildAndExpand(result.getId()).toUri();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(location);
-
-            return new ResponseEntity<Pet>(result, headers, HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     @ApiOperation(value = "Update pet details")
     public ResponseEntity<Pet> save(@PathVariable long id, @RequestBody Pet pet) {
