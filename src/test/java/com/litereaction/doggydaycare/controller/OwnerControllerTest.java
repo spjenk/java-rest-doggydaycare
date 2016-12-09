@@ -1,7 +1,10 @@
 package com.litereaction.doggydaycare.controller;
 
 import com.litereaction.doggydaycare.model.Owner;
+import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
+import com.litereaction.doggydaycare.repository.TenantRepository;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,15 +32,27 @@ public class OwnerControllerTest {
     @Autowired
     private OwnerRepository ownerRepository;
 
+    @Autowired
+    private TenantRepository tenantRepository;
+
     @Before
     public void setup() {
         this.ownerRepository.deleteAllInBatch();
-        this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com"));
-        this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com"));
+        this.tenantRepository.deleteAllInBatch();
+    }
+
+    @After
+    public void teardown() {
+        this.ownerRepository.deleteAllInBatch();
+        this.tenantRepository.deleteAllInBatch();
     }
 
     @Test
     public void findAllOwnersTest() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        this.ownerRepository.save(new Owner("Jack", "aaa@edf.com", tenant));
+        this.ownerRepository.save(new Owner("Jill", "bbb@edf.com", tenant));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners", String.class);
         assertNotNull(response.getBody());
@@ -48,6 +63,10 @@ public class OwnerControllerTest {
     @Test
     public void findOwnerByNameTest() throws Exception {
 
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        this.ownerRepository.save(new Owner("Jack", "aaa@edf.com", tenant));
+        this.ownerRepository.save(new Owner("Jill", "bbb@edf.com", tenant));
+
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?name=Jack", String.class);
         assertNotNull(response.getBody());
         assertThat(response.getBody(), containsString("\"name\":\"Jack\""));
@@ -56,6 +75,10 @@ public class OwnerControllerTest {
 
     @Test
     public void findOwnerByEmailTest() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        this.ownerRepository.save(new Owner("Jack", "aaa@edf.com", tenant));
+        this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com", tenant));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?email=Jill@Hill.com", String.class);
         assertNotNull(response.getBody());
@@ -67,7 +90,9 @@ public class OwnerControllerTest {
     @Test
     public void getOwnerByIdTest() throws Exception {
 
-        Owner owner = this.ownerRepository.save(new Owner("Bill", "abc@edf.com"));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+
+        Owner owner = this.ownerRepository.save(new Owner("Bill", "abc@edf.com", tenant));
 
         String url = BASE_URL + owner.getId();
 
@@ -79,29 +104,12 @@ public class OwnerControllerTest {
     }
 
     @Test
-    public void createOwnerTest() throws Exception {
-
-        String ownerName = "Jack";
-        String ownerEmail = "abc@edf.com";
-        Owner owner = new Owner(ownerName, ownerEmail);
-
-        ResponseEntity<Owner> response =
-                this.restTemplate.postForEntity(BASE_URL, owner, Owner.class);
-
-        assertThat(response.getStatusCode() , equalTo(HttpStatus.CREATED));
-        assertNotNull(response.getBody());
-
-        Owner ownerCreated = response.getBody();
-        assertThat(ownerCreated.getName(), equalTo(ownerName));
-        assertThat(ownerCreated.getEmail(), equalTo(ownerEmail));
-    }
-
-    @Test
     public void updateOwnerTest() throws Exception {
 
         String ownerName = "Jack";
         String ownerEmail = "abc@edf.com";
-        Owner owner = this.ownerRepository.save(new Owner(ownerName, ownerEmail));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner(ownerName, ownerEmail, tenant));
 
         String url = BASE_URL + owner.getId();
 
@@ -120,7 +128,8 @@ public class OwnerControllerTest {
 
         String ownerName = "Jack";
         String ownerEmail = "abc@edf.com";
-        Owner owner = this.ownerRepository.save(new Owner(ownerName, ownerEmail));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner(ownerName, ownerEmail, tenant));
 
         String url = BASE_URL + owner.getId();
 

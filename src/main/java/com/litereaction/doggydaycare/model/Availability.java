@@ -1,34 +1,60 @@
 package com.litereaction.doggydaycare.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "availability")
 public class Availability {
 
     @Id
-    private String date;
+    private String id;
 
+    @JsonIgnore
+    @Column(nullable = false, unique = true)
+    private LocalDate bookingDate;
+
+    @Column(nullable = false)
     private int max;
 
+    @Column(nullable = false)
     private int available;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    private Tenant tenant;
 
     public Availability() {
 
     }
 
-    public Availability(String date, int max){
-        this.date = date;
+    public Availability(int year, int month, int day, int max){
+        this.id = "" + year + month + day;
+        this.bookingDate = LocalDate.of(year, month, day);
         this.max = max;
         this.available = max;
     }
 
-    public String getDate() { return date; }
+    public String getId() {
+        return id;
+    }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public LocalDate getBookingDate() {
+        return bookingDate;
+    }
+
+    public void setBookingDate(LocalDate bookingDate) {
+        this.bookingDate = bookingDate;
+    }
+
+    public void setBookingDate(int year, int month, int day) {
+        this.bookingDate = LocalDate.of(year, month, day);
     }
 
     public int getMax() {
@@ -45,5 +71,13 @@ public class Availability {
 
     public void setAvailable(int available) {
         this.available = available;
+    }
+
+    public Tenant getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
     }
 }

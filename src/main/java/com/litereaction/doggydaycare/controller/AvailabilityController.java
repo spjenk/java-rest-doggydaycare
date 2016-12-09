@@ -9,16 +9,12 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -33,57 +29,39 @@ public class AvailabilityController {
 
     @RequestMapping(method = RequestMethod.GET)
     @ApiOperation(value = "Get availability")
-    public List<Availability> get(@ApiParam(value = "name", required = false) String date) {
+    public List<Availability> get(@ApiParam(value = "year") Integer year,
+                                  @ApiParam(value = "month (1-12)") Integer month,
+                                  @ApiParam(value = "day (1-31)") Integer day) {
 
         List<Availability> availabilities;
 
-        log.info("Date: " + date);
-
-        if (StringUtils.isEmpty(date)) {
+        if (StringUtils.isEmpty(year)) {
             availabilities = availabilityRepository.findAll();
         } else {
-            availabilities = new ArrayList<Availability>();
-            availabilities.add(availabilityRepository.findOne(date));
+            availabilities = availabilityRepository.findByBookingDate(LocalDate.of(year, month, day));
         }
 
         return availabilities;
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(value = "Register new available day")
-    public ResponseEntity<Availability> save(@RequestBody Availability availability) {
-
-        try {
-            Availability result = availabilityRepository.save(availability);
-
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                    .buildAndExpand(result.getDate()).toUri();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(location);
-            return new ResponseEntity<Availability>(result, headers, HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return new ResponseEntity<Availability>(availability, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @RequestMapping(value = "/{date}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @ApiOperation(value = "Get availability by date")
-    public ResponseEntity<Availability> availability(@PathVariable String date) {
-        validateAvailability(date);
-        Availability availability = availabilityRepository.findOne(date);
+    public ResponseEntity<Availability> availability(@PathVariable String id) {
+        validateAvailability(id);
+        Availability availability = availabilityRepository.findOne(id);
         return new ResponseEntity<Availability>(availability, httpUtil.getHttpHeaders(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{date}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     @ApiOperation(value = "Update availability details")
-    public ResponseEntity<Availability> save(@PathVariable String date, @RequestBody Availability availability) {
+    public ResponseEntity<Availability> save(@PathVariable String id, @RequestBody Availability availability) {
 
-        validateAvailability(date);
+        Availability modifyAvailability = validateAvailability(id);
+        modifyAvailability.setAvailable(availability.getAvailable());
+        modifyAvailability.setMax(availability.getMax());
 
         try {
-            Availability result = availabilityRepository.save(availability);
+            Availability result = availabilityRepository.save(modifyAvailability);
             return new ResponseEntity<Availability>(result, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -91,25 +69,11 @@ public class AvailabilityController {
         }
     }
 
-    @RequestMapping(value = "/{date}", method = RequestMethod.DELETE)
-    @ApiOperation(value = "Remove availability day")
-    public ResponseEntity delete(@PathVariable String date) {
-
-        validateAvailability(date);
-
-        try {
-            availabilityRepository.delete(date);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    private void validateAvailability(String date) {
-        this.availabilityRepository.findByDate(date).orElseThrow(
-                () -> new NotFoundException(date));
-        log.info("Found availability for date:" + date);
+    private Availability validateAvailability(String id) {
+        Availability availability = this.availabilityRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(id));
+        log.info("Found availability for:" + id);
+        return availability;
     }
 
 }

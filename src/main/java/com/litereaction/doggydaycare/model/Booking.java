@@ -1,6 +1,5 @@
 package com.litereaction.doggydaycare.model;
 
-
 import javax.persistence.*;
 
 @Entity
@@ -11,18 +10,17 @@ public class Booking {
     @GeneratedValue
     private long id;
 
-    private String date;
-
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Pet pet;
 
-    public Booking() {
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    private Availability availability;
 
-    }
+    public Booking() {}
 
-    public Booking(String date, Pet pet) {
-        this.date = date;
+    public Booking(Availability availability, Pet pet) {
         this.pet = pet;
+        this.availability = availability;
     }
 
     public long getId() {
@@ -33,19 +31,19 @@ public class Booking {
         this.id = id;
     }
 
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
     public Pet getPet() {
         return pet;
     }
 
     public void setPet(Pet pet) {
         this.pet = pet;
+    }
+
+    public Availability getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(Availability availability) {
+        this.availability = availability;
     }
 }

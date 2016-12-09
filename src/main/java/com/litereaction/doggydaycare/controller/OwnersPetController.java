@@ -10,14 +10,12 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/owners/{ownerId}/pets")
@@ -37,11 +35,10 @@ public class OwnersPetController {
     @ApiOperation(value = "Register/update a new pet")
     public ResponseEntity<Pet> save(@PathVariable long ownerId, @RequestBody Pet pet) {
 
-        validateOwner(ownerId);
+        Owner owner = validateOwner(ownerId);
 
         try {
 
-            Owner owner =  ownerRepository.findOne(ownerId);
             pet.setOwner(owner);
 
             Pet result = petRepository.save(pet);
@@ -59,12 +56,14 @@ public class OwnersPetController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
+    @ApiOperation(value = "Get all pets for owner")
     public Collection<Pet> get(@PathVariable long ownerId) {
         return petRepository.findByOwnerId(ownerId);
     }
 
-    private void validateOwner(long id) {
-        this.ownerRepository.findById(id).orElseThrow(
+    private Owner validateOwner(long id) {
+        Owner owner = this.ownerRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(id));
+        return owner;
     }
 }

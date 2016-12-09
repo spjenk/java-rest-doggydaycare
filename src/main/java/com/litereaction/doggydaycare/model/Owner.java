@@ -1,5 +1,6 @@
 package com.litereaction.doggydaycare.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -19,12 +20,17 @@ public class Owner {
 
     private String displayName;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    private Tenant tenant;
+
     public Owner() {
     }
 
-    public Owner(String name, String email) {
+    public Owner(String name, String email, Tenant tenant) {
         this.name = name;
         this.email = email;
+        this.tenant = tenant;
     }
 
     public String getDisplayName() {
@@ -57,6 +63,12 @@ public class Owner {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Tenant getTenant() { return tenant; }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
     }
 
 }

@@ -1,7 +1,10 @@
 package com.litereaction.doggydaycare.model;
 
+import com.litereaction.doggydaycare.util.ModelUtil;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.time.LocalDate;
 
 public class BookingTest {
 
@@ -10,37 +13,27 @@ public class BookingTest {
 
         //when
         String name = "Spot";
-        String date = "19991231";
-        Booking booking = new Booking(date, new Pet(name, 1));
+        LocalDate date = LocalDate.of(1999,12,31);
+        Booking booking = new Booking(new Availability(1999, 12, 31, 5), new Pet(name, 1));
 
         //then
         Assert.assertEquals(0, booking.getId());
-        Assert.assertEquals(date, booking.getDate());
+        Assert.assertEquals(date, booking.getAvailability().getBookingDate());
         Assert.assertEquals(name, booking.getPet().getName());
     }
 
     @Test
     public void createPawsUsingSettersTest() {
 
-        //given
-        Owner owner = new Owner();
-        owner.setName("Jack");
-
-        Pet pet = new Pet();
-        pet.setId(1);
-        pet.setName("Spot");
-        pet.setAge(2);
-        pet.setOwner(owner);
-
         //when
         Booking booking = new Booking();
         booking.setId(1);
-        booking.setDate("19991231");
-        booking.setPet(pet);
+        booking.setAvailability(new Availability(1999, 12, 31, 5));
+        booking.setPet(new Pet("Spot", 1));
 
         //then
         Assert.assertEquals(1, booking.getId());
-        Assert.assertEquals("19991231", booking.getDate());
+        Assert.assertEquals(5, booking.getAvailability().getMax());
         Assert.assertEquals("Spot", booking.getPet().getName());
     }
 }

@@ -2,13 +2,14 @@ package com.litereaction.doggydaycare.controller;
 
 import com.litereaction.doggydaycare.exceptions.NoAvailabilityException;
 import com.litereaction.doggydaycare.exceptions.NotFoundException;
-import com.litereaction.doggydaycare.util.httpUtil;
 import com.litereaction.doggydaycare.model.Availability;
 import com.litereaction.doggydaycare.model.Booking;
+import com.litereaction.doggydaycare.model.Pet;
 import com.litereaction.doggydaycare.repository.AvailabilityRepository;
 import com.litereaction.doggydaycare.repository.BookingRepository;
+import com.litereaction.doggydaycare.repository.PetRepository;
+import com.litereaction.doggydaycare.util.httpUtil;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/bookings")
@@ -36,25 +35,18 @@ public class BookingsController {
     @Autowired
     AvailabilityRepository availabilityRepository;
 
-    @RequestMapping(method = RequestMethod.GET)
-    @ApiOperation(value = "Get bookings")
-    public List<Booking> get(@ApiParam(value = "name") String date) {
-
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-            sdf.parse(date);
-            return bookingRepository.findByDate(date);
-        } catch (Exception e) {
-            log.error("Error:" + e.getMessage());
-            return null;
-        }
-    }
+    @Autowired
+    PetRepository petRepository;
 
     @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "Make a booking")
     public ResponseEntity<Booking> save(@RequestBody Booking booking) {
 
-        Availability availability = getAndValidateAvailability(booking.getDate());
+        Availability availability = validateAvailability(booking.getAvailability().getId());
+        booking.setAvailability(availability);
+
+        validatePetExists(booking.getPet().getId());
+
 
         try {
 
@@ -96,7 +88,7 @@ public class BookingsController {
             Booking booking = bookingRepository.findOne(id);
             bookingRepository.delete(id);
 
-            Availability availability = availabilityRepository.findOne(booking.getDate());
+            Availability availability = availabilityRepository.findOne(booking.getAvailability().getId());
             availability.setAvailable(availability.getAvailable() + 1);
             availabilityRepository.save(availability);
 
@@ -114,18 +106,24 @@ public class BookingsController {
         log.info("Found booking:" + id);
     }
 
-    private Availability getAndValidateAvailability(String date) {
+    private Availability validateAvailability(String availabilityId) {
 
-        this.availabilityRepository.findByDate(date).orElseThrow(
-                () -> new NotFoundException(date));
+        Availability availability = this.availabilityRepository.findById(availabilityId).orElseThrow(
+                () -> new NotFoundException(availabilityId));
 
-        Availability availability = availabilityRepository.findOne(date);
         if (availability.getAvailable() <= 0) {
-            throw new NoAvailabilityException(date);
+            throw new NoAvailabilityException(availabilityId);
         }
 
-        log.info("Has availability for booking on:" + date);
+        log.info("Has availability for booking on:" + availabilityId);
         return availability;
+    }
+
+    private Pet validatePetExists(long id) {
+        Pet pet = this.petRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(id));
+        log.info("Found booking:" + id);
+        return pet;
     }
 
 }

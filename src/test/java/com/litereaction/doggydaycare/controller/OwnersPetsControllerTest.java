@@ -2,8 +2,10 @@ package com.litereaction.doggydaycare.controller;
 
 import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.model.Pet;
+import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.PetRepository;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,8 +34,17 @@ public class OwnersPetsControllerTest {
     @Autowired
     private OwnerRepository ownerRepository;
 
+    private Tenant tenant = new Tenant("PnR");
+
+
     @Before
     public void setup() {
+        this.petRepository.deleteAllInBatch();
+        this.ownerRepository.deleteAllInBatch();
+    }
+
+    @After
+    public void teardown() {
         this.petRepository.deleteAllInBatch();
         this.ownerRepository.deleteAllInBatch();
     }
@@ -41,7 +52,7 @@ public class OwnersPetsControllerTest {
     @Test
     public void findAllPetsTest() throws Exception {
 
-        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com"));
+        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
 
         Pet spot = new Pet("Spot", 1);
         spot.setOwner(jack);
@@ -60,9 +71,31 @@ public class OwnersPetsControllerTest {
     }
 
     @Test
+    public void onlyThisOwnersPetsAreReturnedTest() throws Exception {
+
+        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
+        Owner jill = this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com", tenant));
+
+        Pet spot = new Pet("Spot", 1);
+        spot.setOwner(jack);
+        spot = this.petRepository.save(spot);
+
+        Pet rover = new Pet("Rover", 2);
+        rover.setOwner(jill);
+        rover = this.petRepository.save(rover);
+
+        String url = "/owners/" + jack.getId() + "/pets";
+
+        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertNotNull(response.getBody());
+        assertThat(response.getBody(), containsString("\"id\":" + spot.getId() + ",\"name\":\"Spot\""));
+        assertThat(response.getBody(), not(containsString("\"id\":" + rover.getId() + ",\"name\":\"Rover\"")));
+    }
+
+    @Test
     public void createPetTest() throws Exception {
 
-        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com"));
+        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
 
         String petName = "Spot";
         int petAge = 5;
