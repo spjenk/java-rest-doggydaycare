@@ -49,21 +49,6 @@ public class PetsController {
         return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    @ApiOperation(value = "Update pet details")
-    public ResponseEntity<Pet> save(@PathVariable long id, @RequestBody Pet pet) {
-
-        validatePetExists(id);
-
-        try {
-            Pet result = petRepository.save(pet);
-            return new ResponseEntity<Pet>(result, httpUtil.getHttpHeaders(), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ApiOperation(value = "Remove a pet from the repository")
     public ResponseEntity delete(@PathVariable long id) {

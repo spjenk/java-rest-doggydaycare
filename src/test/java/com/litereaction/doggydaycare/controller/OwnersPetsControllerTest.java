@@ -56,18 +56,18 @@ public class OwnersPetsControllerTest {
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
         Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
 
-        Pet spot = new Pet("Spot", 1);
-        spot.setOwner(jack);
+        Pet spot = new Pet("Spot", 1, jack);
         spot = this.petRepository.save(spot);
 
-        Pet rover = new Pet("Rover", 2);
-        rover.setOwner(jack);
+        Pet rover = new Pet("Rover", 2, jack);
         rover = this.petRepository.save(rover);
 
         String url = "/owners/" + jack.getId() + "/pets";
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
+
         assertThat(response.getBody(), containsString("\"id\":" + spot.getId() + ",\"name\":\"Spot\""));
         assertThat(response.getBody(), containsString("\"id\":" + rover.getId() + ",\"name\":\"Rover\""));
     }
@@ -79,18 +79,18 @@ public class OwnersPetsControllerTest {
         Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
         Owner jill = this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com", tenant));
 
-        Pet spot = new Pet("Spot", 1);
-        spot.setOwner(jack);
+        Pet spot = new Pet("Spot", 1, jack);
         spot = this.petRepository.save(spot);
 
-        Pet rover = new Pet("Rover", 2);
-        rover.setOwner(jill);
+        Pet rover = new Pet("Rover", 2, jill);
         rover = this.petRepository.save(rover);
 
         String url = "/owners/" + jack.getId() + "/pets";
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
+
         assertThat(response.getBody(), containsString("\"id\":" + spot.getId() + ",\"name\":\"Spot\""));
         assertThat(response.getBody(), not(containsString("\"id\":" + rover.getId() + ",\"name\":\"Rover\"")));
     }
@@ -103,8 +103,7 @@ public class OwnersPetsControllerTest {
 
         String petName = "Spot";
         int petAge = 5;
-        Pet pet = new Pet(petName, petAge);
-        pet.setOwner(jack);
+        Pet pet = new Pet(petName, petAge, jack);
 
         String url = "/owners/" + jack.getId() + "/pets";
 
@@ -115,5 +114,40 @@ public class OwnersPetsControllerTest {
         Pet petResponse = response.getBody();
         assertThat(petResponse.getName(), equalTo(petName));
         assertThat(petResponse.getAge(), equalTo(petAge));
+    }
+
+    @Test
+    public void createPetBadRequestTest() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
+
+        String url = "/owners/" + jack.getId() + "/pets";
+
+        ResponseEntity<Pet> response = this.restTemplate.postForEntity(url, new Pet(), Pet.class);
+        assertThat(response.getStatusCode() , equalTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    public void updatePetTest() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
+
+        Pet pet = this.petRepository.save(new Pet("Spot", 5, jack));
+
+        String url = "/owners/" + jack.getId() + "/pets/" + pet.getId();
+
+        pet.setAge(4);
+
+        this.restTemplate.put(url, pet);
+
+        ResponseEntity<Pet> response = this.restTemplate.getForEntity("/pets/" + pet.getId(), Pet.class);
+        assertThat(response.getStatusCode() , equalTo(HttpStatus.OK));
+        assertNotNull(response.getBody());
+
+        Pet petResponse = response.getBody();
+        assertThat(petResponse.getId(), equalTo(pet.getId()));
+        assertThat(petResponse.getAge(), equalTo(4));
     }
 }

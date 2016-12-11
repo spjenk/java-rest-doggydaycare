@@ -55,6 +55,23 @@ public class OwnersPetController {
         }
     }
 
+    @RequestMapping(value = "/{petId}", method = RequestMethod.PUT)
+    @ApiOperation(value = "Update an existing pet")
+    public ResponseEntity<Pet> update(@PathVariable long ownerId, @PathVariable long petId, @RequestBody Pet pet) {
+
+        Owner owner = validateOwner(ownerId);
+        validatePetExists(petId);
+
+        try {
+
+            pet.setOwner(owner);
+            Pet result = petRepository.save(pet);
+            return new ResponseEntity<Pet>(result, httpUtil.getHttpHeaders(), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<Pet>(pet, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     @ApiOperation(value = "Get all pets for owner")
     public Collection<Pet> get(@PathVariable long ownerId) {
@@ -65,5 +82,11 @@ public class OwnersPetController {
         Owner owner = this.ownerRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(id));
         return owner;
+    }
+
+    private Pet validatePetExists(long id) {
+        Pet pet= this.petRepository.findById(id).orElseThrow(
+                () -> new NotFoundException(id));
+        return pet;
     }
 }

@@ -12,19 +12,21 @@ public class Pet {
     @GeneratedValue
     private long id;
 
+    @Column(nullable = false)
     private String name;
 
     private int age;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private Owner owner;
 
     public Pet() { }
 
-    public Pet(String name, int age) {
+    public Pet(String name, int age, Owner owner) {
         this.name = name;
         this.age = age;
+        this.owner = owner;
     }
 
     public long getId() {

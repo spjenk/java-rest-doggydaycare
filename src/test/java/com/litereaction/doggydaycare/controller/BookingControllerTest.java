@@ -1,13 +1,7 @@
 package com.litereaction.doggydaycare.controller;
 
-import com.litereaction.doggydaycare.model.Availability;
-import com.litereaction.doggydaycare.model.Booking;
-import com.litereaction.doggydaycare.model.Pet;
-import com.litereaction.doggydaycare.model.Tenant;
-import com.litereaction.doggydaycare.repository.AvailabilityRepository;
-import com.litereaction.doggydaycare.repository.BookingRepository;
-import com.litereaction.doggydaycare.repository.PetRepository;
-import com.litereaction.doggydaycare.repository.TenantRepository;
+import com.litereaction.doggydaycare.model.*;
+import com.litereaction.doggydaycare.repository.*;
 import com.litereaction.doggydaycare.util.ModelUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -54,11 +48,15 @@ public class BookingControllerTest {
     @Autowired
     private AvailabilityRepository availabiltyRepository;
 
+    @Autowired
+    private OwnerRepository ownerRepository;
+
     @Before
     public void setup() {
         this.bookingRepository.deleteAllInBatch();
         this.availabiltyRepository.deleteAllInBatch();
         this.petRepository.deleteAllInBatch();
+        this.ownerRepository.deleteAllInBatch();
         this.tenantRepository.deleteAllInBatch();
     }
 
@@ -67,15 +65,18 @@ public class BookingControllerTest {
         this.bookingRepository.deleteAllInBatch();
         this.availabiltyRepository.deleteAllInBatch();
         this.petRepository.deleteAllInBatch();
+        this.ownerRepository.deleteAllInBatch();
         this.tenantRepository.deleteAllInBatch();
     }
 
     @Test
     public void createBookingTest() throws Exception {
 
-        Pet spot = this.petRepository.save(new Pet("Spot", 1));
-
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
+
+        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
+
         Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         Booking booking = new Booking(availability, spot);
@@ -94,10 +95,19 @@ public class BookingControllerTest {
     }
 
     @Test
+    public void createBookingBadRequestTest() throws Exception {
+
+        ResponseEntity<Booking> response = this.restTemplate.postForEntity(BASE_URL, new Booking(), Booking.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
     public void deleteBookingTest() throws Exception {
 
-        Pet spot = this.petRepository.save(new Pet("Spot", 1));
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
+
+        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
         Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         Booking booking = new Booking(availability, spot);
@@ -112,8 +122,10 @@ public class BookingControllerTest {
     @Test
     public void deleteBookingEnsureAvailabilityUpdatesTest() throws Exception {
 
-        Pet spot = this.petRepository.save(new Pet("Spot", 1));
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
+
+        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
         Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         ResponseEntity<Booking> response =
@@ -132,8 +144,10 @@ public class BookingControllerTest {
     @Test
     public void createBookingNoAvailabilityTest() throws Exception {
 
-        Pet spot = this.petRepository.save(new Pet("Spot", 1));
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
+
+        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
         Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, 0, tenant));
 
         ResponseEntity<Booking> response =

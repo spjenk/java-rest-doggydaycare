@@ -1,7 +1,12 @@
 package com.litereaction.doggydaycare.controller;
 
+import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.model.Pet;
+import com.litereaction.doggydaycare.model.Tenant;
+import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.PetRepository;
+import com.litereaction.doggydaycare.repository.TenantRepository;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,16 +34,37 @@ public class PetsControllerTest {
     @Autowired
     private PetRepository petRepository;
 
+    @Autowired
+    private OwnerRepository ownerRepository;
+
+    @Autowired
+    TenantRepository tenantRepository;
+
+    private Tenant tenant = new Tenant("PnR");
+    private Owner owner = null;
+
     @Before
     public void setup() {
         this.petRepository.deleteAllInBatch();
+        this.ownerRepository.deleteAllInBatch();
+        this.tenantRepository.deleteAllInBatch();
+
+        tenant = this.tenantRepository.save(tenant);
+        owner = this.ownerRepository.save(new Owner("OwnerName", "owner@email.com", tenant));
+    }
+
+    @After
+    public void teardown() {
+        this.petRepository.deleteAllInBatch();
+        this.ownerRepository.deleteAllInBatch();
+        this.tenantRepository.deleteAllInBatch();
     }
 
     @Test
     public void findAllPetsTest() throws Exception {
 
-        Pet spot = this.petRepository.save(new Pet("Spot", 1));
-        Pet rover = this.petRepository.save(new Pet("Rover", 2));
+        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
+        Pet rover = this.petRepository.save(new Pet("Rover", 2, owner));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/pets", String.class);
         assertNotNull(response.getBody());
@@ -49,8 +75,8 @@ public class PetsControllerTest {
     @Test
     public void findPetByNameTest() throws Exception {
 
-        this.petRepository.save(new Pet("Spot", 1));
-        this.petRepository.save(new Pet("Rover", 2));
+        this.petRepository.save(new Pet("Spot", 1, owner));
+        this.petRepository.save(new Pet("Rover", 2, owner));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/pets?name=Spot", String.class);
         assertNotNull(response.getBody());
@@ -64,7 +90,7 @@ public class PetsControllerTest {
         String petName = "Spot";
         int petAge = 5;
 
-        Pet pet = this.petRepository.save(new Pet(petName, petAge));
+        Pet pet = this.petRepository.save(new Pet(petName, petAge, owner));
 
         String url = BASE_URL + pet.getId();
 
@@ -79,33 +105,9 @@ public class PetsControllerTest {
     }
 
     @Test
-    public void updatePetTest() throws Exception {
-
-        String petName = "Spot";
-        int petAge = 5;
-        Pet pet = this.petRepository.save(new Pet(petName, petAge));
-
-        String url = BASE_URL + pet.getId();
-
-        pet.setAge(4);
-
-        this.restTemplate.put(url, pet);
-
-        ResponseEntity<Pet> response = this.restTemplate.getForEntity(url, Pet.class);
-        assertThat(response.getStatusCode() , equalTo(HttpStatus.OK));
-        assertNotNull(response.getBody());
-
-        Pet petResponse = response.getBody();
-        assertThat(petResponse.getId(), equalTo(pet.getId()));
-        assertThat(petResponse.getAge(), equalTo(4));
-    }
-
-    @Test
     public void deleteOwnerTest() throws Exception {
 
-        String petName = "Spot";
-        int petAge = 5;
-        Pet pet = this.petRepository.save(new Pet(petName, petAge));
+        Pet pet = this.petRepository.save(new Pet("Spot", 5, owner));
 
         String url = BASE_URL + pet.getId();
 

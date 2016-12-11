@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public class BookingTest {
 
     private Tenant tenant = new Tenant("PnR");
+    private Owner owner = new Owner("name", "owner@email.com", tenant);
 
     @Test
     public void createBookingFromConstructorTest() {
@@ -16,7 +17,7 @@ public class BookingTest {
         //when
         String name = "Spot";
         LocalDate date = LocalDate.of(1999,12,31);
-        Booking booking = new Booking(new Availability(1999, 12, 31, 5, tenant), new Pet(name, 1));
+        Booking booking = new Booking(new Availability(1999, 12, 31, 5, tenant), new Pet(name, 1, owner));
 
         //then
         Assert.assertEquals(0, booking.getId());
@@ -31,7 +32,7 @@ public class BookingTest {
         Booking booking = new Booking();
         booking.setId(1);
         booking.setAvailability(new Availability(1999, 12, 31, 5, tenant));
-        booking.setPet(new Pet("Spot", 1));
+        booking.setPet(new Pet("Spot", 1, owner));
 
         //then
         Assert.assertEquals(1, booking.getId());

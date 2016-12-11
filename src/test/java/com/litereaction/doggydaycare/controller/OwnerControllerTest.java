@@ -55,7 +55,9 @@ public class OwnerControllerTest {
         this.ownerRepository.save(new Owner("Jill", "bbb@edf.com", tenant));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners", String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
+
         assertThat(response.getBody(), containsString("Jack"));
         assertThat(response.getBody(), containsString("Jill"));
     }
@@ -68,7 +70,9 @@ public class OwnerControllerTest {
         this.ownerRepository.save(new Owner("Jill", "bbb@edf.com", tenant));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?name=Jack", String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
+
         assertThat(response.getBody(), containsString("\"name\":\"Jack\""));
         assertThat(response.getBody(), not(containsString("Jill")));
     }
@@ -81,7 +85,9 @@ public class OwnerControllerTest {
         this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com", tenant));
 
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?email=Jill@Hill.com", String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
+
         assertThat(response.getBody(), containsString("\"name\":\"Jill\""));
         assertThat(response.getBody(), containsString("\"email\":\"Jill@Hill.com\""));
         assertThat(response.getBody(), not(containsString("Jack")));
@@ -97,10 +103,22 @@ public class OwnerControllerTest {
         String url = BASE_URL + owner.getId();
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
+
         assertThat(response.getBody(), containsString("\"name\":\"Bill\""));
         assertThat(response.getBody(), containsString("\"email\":\"abc@edf.com\""));
         assertThat(response.getBody(), not(containsString("Jack")));
+    }
+
+    @Test
+    public void getOwnerByWrongIdTest() throws Exception {
+
+        String url = BASE_URL + "9999";
+
+        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
+
     }
 
     @Test
@@ -136,7 +154,7 @@ public class OwnerControllerTest {
         this.restTemplate.delete(url);
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
-        assertThat(response.getStatusCode() , equalTo(HttpStatus.NOT_FOUND));
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
 
     }
 

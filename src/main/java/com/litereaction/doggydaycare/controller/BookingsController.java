@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -42,29 +43,30 @@ public class BookingsController {
     @ApiOperation(value = "Make a booking")
     public ResponseEntity<Booking> save(@RequestBody Booking booking) {
 
-        Availability availability = validateAvailability(booking.getAvailability().getId());
+        Availability availability = validateAvailability(booking);
         booking.setAvailability(availability);
 
-        validatePetExists(booking.getPet().getId());
+        Pet pet = validatePetExists(booking);
+        booking.setPet(pet);
 
+        if (availability != null && pet != null) {
+            try {
 
-        try {
+                Booking result = bookingRepository.save(booking);
 
-            Booking result = bookingRepository.save(booking);
+                URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                        .buildAndExpand(result.getId()).toUri();
 
-            URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                    .buildAndExpand(result.getId()).toUri();
+                availability.setAvailable(availability.getAvailable() - 1);
+                availabilityRepository.save(availability);
 
-            availability.setAvailable(availability.getAvailable() - 1);
-            availabilityRepository.save(availability);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setLocation(location);
+                return new ResponseEntity<Booking>(result, headers, HttpStatus.CREATED);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(location);
-            return new ResponseEntity<Booking>(result, headers, HttpStatus.CREATED);
-
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
         }
         return new ResponseEntity<Booking>(booking, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
     }
@@ -106,23 +108,32 @@ public class BookingsController {
         log.info("Found booking:" + id);
     }
 
-    private Availability validateAvailability(String availabilityId) {
+    private Availability validateAvailability(Booking booking) {
 
-        Availability availability = this.availabilityRepository.findById(availabilityId).orElseThrow(
-                () -> new NotFoundException(availabilityId));
+        Availability availability = null;
 
-        if (availability.getAvailable() <= 0) {
-            throw new NoAvailabilityException(availabilityId);
+        if (booking.getAvailability() != null && !StringUtils.isEmpty(booking.getAvailability().getId())) {
+            String availabilityId = booking.getAvailability().getId();
+            availability = this.availabilityRepository.findById(availabilityId).orElseThrow(
+                    () -> new NotFoundException(availabilityId));
+
+            if (availability.getAvailable() <= 0) {
+                throw new NoAvailabilityException(availabilityId);
+            }
+
+            log.info("Has availability for booking on:" + availabilityId);
         }
-
-        log.info("Has availability for booking on:" + availabilityId);
         return availability;
     }
 
-    private Pet validatePetExists(long id) {
-        Pet pet = this.petRepository.findById(id).orElseThrow(
-                () -> new NotFoundException(id));
-        log.info("Found booking:" + id);
+    private Pet validatePetExists(Booking booking) {
+        Pet pet = null;
+        if (booking.getPet() != null && !StringUtils.isEmpty(booking.getPet().getId())) {
+            long petId = booking.getPet().getId();
+            pet = this.petRepository.findById(petId).orElseThrow(
+                    () -> new NotFoundException(petId));
+            log.info("Found pet with id:" + petId);
+        }
         return pet;
     }
 

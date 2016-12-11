@@ -10,11 +10,13 @@ public class PetTest {
     private static final int DEFAULT_AGE = 1;
     private static final long DEFAULT_CAREGIVER_ID = 0;
 
+    Owner owner = new Owner("name", "owner@email.com", new Tenant("PnR"));
+
     @Test
     public void createPawsFromConstructorTest() {
 
         //when
-        Pet pet = new Pet(DEFAULT_NAME, DEFAULT_AGE);
+        Pet pet = new Pet(DEFAULT_NAME, DEFAULT_AGE, owner);
 
         //then
         Assert.assertEquals(DEFAULT_ID, pet.getId());
