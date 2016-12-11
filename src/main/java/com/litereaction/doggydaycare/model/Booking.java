@@ -10,10 +10,10 @@ public class Booking {
     @GeneratedValue
     private long id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Pet pet;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Availability availability;
 
     public Booking() {}

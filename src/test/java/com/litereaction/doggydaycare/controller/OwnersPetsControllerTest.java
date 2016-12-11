@@ -5,6 +5,7 @@ import com.litereaction.doggydaycare.model.Pet;
 import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.PetRepository;
+import com.litereaction.doggydaycare.repository.TenantRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,8 +35,8 @@ public class OwnersPetsControllerTest {
     @Autowired
     private OwnerRepository ownerRepository;
 
-    private Tenant tenant = new Tenant("PnR");
-
+    @Autowired
+    private TenantRepository tenantRepository;
 
     @Before
     public void setup() {
@@ -52,6 +53,7 @@ public class OwnersPetsControllerTest {
     @Test
     public void findAllPetsTest() throws Exception {
 
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
         Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
 
         Pet spot = new Pet("Spot", 1);
@@ -73,6 +75,7 @@ public class OwnersPetsControllerTest {
     @Test
     public void onlyThisOwnersPetsAreReturnedTest() throws Exception {
 
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
         Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
         Owner jill = this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com", tenant));
 
@@ -95,6 +98,7 @@ public class OwnersPetsControllerTest {
     @Test
     public void createPetTest() throws Exception {
 
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
         Owner jack = this.ownerRepository.save(new Owner("Jack", "Jack@Hill.com", tenant));
 
         String petName = "Spot";

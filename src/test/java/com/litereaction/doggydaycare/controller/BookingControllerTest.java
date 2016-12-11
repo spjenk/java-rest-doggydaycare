@@ -51,29 +51,34 @@ public class BookingControllerTest {
 
     @Before
     public void setup() {
-        this.petRepository.deleteAllInBatch();
-        this.availabiltyRepository.deleteAllInBatch();
         this.bookingRepository.deleteAllInBatch();
+        this.availabiltyRepository.deleteAllInBatch();
+        this.petRepository.deleteAllInBatch();
     }
 
     @After
     public void teardown() {
-        this.petRepository.deleteAllInBatch();
-        this.availabiltyRepository.deleteAllInBatch();
         this.bookingRepository.deleteAllInBatch();
+        this.availabiltyRepository.deleteAllInBatch();
+        this.petRepository.deleteAllInBatch();
     }
 
     @Test
     public void createBookingTest() throws Exception {
 
-        ResponseEntity<Booking> response = getBookingResponseEntity();
+        Pet spot = this.petRepository.save(new Pet("Spot", 1));
+
+        Booking booking = new Booking(createAvailability(0), spot);
+
+        ResponseEntity<Booking> response = this.restTemplate.postForEntity(BASE_URL, booking, Booking.class);
 
         assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertNotNull(response.getBody());
 
         Booking bookingResult = response.getBody();
-        assertThat(bookingResult.getAvailability().getBookingDate(), equalTo(BOOKING_DATE));
-        assertThat(bookingResult.getPet().getName(), equalTo("Spot"));
+        assertThat(bookingResult.getAvailability().getId(), equalTo(ModelUtil.getId(BOOKING_DATE)));
+        assertThat(bookingResult.getPet().getId(), equalTo(spot.getId()));
+        assertThat(bookingResult.getPet().getName(), equalTo(spot.getName()));
 
         Availability availability = availabiltyRepository.findOne(ModelUtil.getId(BOOKING_DATE));
         assertThat(availability.getAvailable(), equalTo(4));
@@ -97,15 +102,17 @@ public class BookingControllerTest {
     @Test
     public void deleteBookingEnsureAvailabilityUpdatesTest() throws Exception {
 
-        Booking booking = getBookingResponseEntity().getBody();
-
+        Pet spot = this.petRepository.save(new Pet("Spot", 1));
         Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX));
-        assertThat(availability.getAvailable(), equalTo(MAX - 1));
+
+        ResponseEntity<Booking> response =
+                this.restTemplate.postForEntity(BASE_URL, new Booking(availability, spot), Booking.class);
+        Booking booking = response.getBody();
+
+        availability = availabiltyRepository.findOne(ModelUtil.getId(BOOKING_DATE));
+        assertThat(availability.getAvailable(), equalTo(MAX-1));
 
         this.restTemplate.delete(getUrl(booking));
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity(getUrl(booking), String.class);
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
 
         availability = availabiltyRepository.findOne(ModelUtil.getId(BOOKING_DATE));
         assertThat(availability.getAvailable(), equalTo(MAX));
@@ -121,14 +128,6 @@ public class BookingControllerTest {
                 this.restTemplate.postForEntity(BASE_URL, new Booking(availability, spot), Booking.class);
 
         assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
-    }
-
-    private ResponseEntity<Booking> getBookingResponseEntity() {
-        Pet spot = this.petRepository.save(new Pet("Spot", 1));
-
-        Booking booking = new Booking(createAvailability(0), spot);
-
-        return this.restTemplate.postForEntity(BASE_URL, booking, Booking.class);
     }
 
     private String getUrl(Booking booking) {
