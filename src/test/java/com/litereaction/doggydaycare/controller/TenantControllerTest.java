@@ -1,7 +1,9 @@
 package com.litereaction.doggydaycare.controller;
 
+import com.litereaction.doggydaycare.model.Availability;
 import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.model.Tenant;
+import com.litereaction.doggydaycare.repository.AvailabilityRepository;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.TenantRepository;
 import org.junit.Before;
@@ -15,8 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -33,9 +38,13 @@ public class TenantControllerTest {
     @Autowired
     private TenantRepository tenantRepository;
 
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
     @Before
     public void setup() {
         this.ownerRepository.deleteAllInBatch();
+        this.availabilityRepository.deleteAllInBatch();
         this.tenantRepository.deleteAllInBatch();
     }
 
@@ -70,5 +79,46 @@ public class TenantControllerTest {
         Owner ownerCreated = response.getBody();
         assertThat(ownerCreated.getName(), equalTo(ownerName));
         assertThat(ownerCreated.getEmail(), equalTo(ownerEmail));
+    }
+
+    @Test
+    public void createOwnerBadRequestTest() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+
+        String url = "/tenants/" + tenant.getId() + "/owners";
+
+        ResponseEntity<Owner> response =
+                this.restTemplate.postForEntity(url, new Owner(), Owner.class);
+
+        assertThat(response.getStatusCode() , equalTo(HttpStatus.BAD_REQUEST));
+
+    }
+
+
+
+    @Test
+    public void findAvailabilityByDateTest() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability a1 = this.availabilityRepository.save(new Availability(2016,11,16, 5, tenant));
+        Availability a2 = this.availabilityRepository.save(new Availability(2016,11,17, 5, tenant));
+
+        String url = "/tenants/" + tenant.getId() + "/availability?year=2016&month=11&day=16";
+
+        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertNotNull(response.getBody());
+
+        assertThat(response.getBody(), containsString(a1.getId()));
+        assertThat(response.getBody(), not(containsString(a2.getId())));
+    }
+
+    @Test
+    public void findAvailabilityWithWrongIdTest() throws Exception {
+
+        String url = "/tenants/9999/availability?year=2016&month=11&day=16";
+
+        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));;
     }
 }

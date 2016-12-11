@@ -1,21 +1,26 @@
 package com.litereaction.doggydaycare.controller;
 
 import com.litereaction.doggydaycare.exceptions.NotFoundException;
+import com.litereaction.doggydaycare.model.Availability;
 import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.model.Tenant;
+import com.litereaction.doggydaycare.repository.AvailabilityRepository;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.TenantRepository;
 import com.litereaction.doggydaycare.util.httpUtil;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -28,6 +33,10 @@ public class TenantsController {
 
     @Autowired
     OwnerRepository ownerRepository;
+
+    @Autowired
+    AvailabilityRepository availabilityRepository;
+
 
     @RequestMapping(method = RequestMethod.GET)
     @ApiOperation(value = "Get Tenants")
@@ -55,6 +64,19 @@ public class TenantsController {
         } catch (Exception e) {
             return new ResponseEntity<Owner>(owner, httpUtil.getHttpHeaders(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @RequestMapping(value = "/{tenantId}/availability", method = RequestMethod.GET)
+    @ApiOperation(value = "Get availability")
+    public List<Availability> get(@PathVariable Long tenantId,
+                                  @ApiParam(value = "year") Integer year,
+                                  @ApiParam(value = "month (1-12)") Integer month,
+                                  @ApiParam(value = "day (1-31)") Integer day) {
+
+        Tenant tenant = validateTenant(tenantId);
+
+        List<Availability> availabilities = availabilityRepository.findByBookingDateAndTenant(LocalDate.of(year, month, day), tenant);
+        return availabilities;
     }
 
     private Tenant validateTenant(long id) {

@@ -13,6 +13,10 @@ public class Availability {
     private String id;
 
     @JsonIgnore
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Tenant tenant;
+
+    @JsonIgnore
     @Column(nullable = false, unique = true)
     private LocalDate bookingDate;
 
@@ -22,16 +26,13 @@ public class Availability {
     @Column(nullable = false)
     private int available;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    private Tenant tenant;
-
     public Availability() {
 
     }
 
-    public Availability(int year, int month, int day, int max){
-        this.id = "" + year + month + day;
+    public Availability(int year, int month, int day, int max, Tenant tenant){
+        this.id = "" + year + month + day + tenant.getId();
+        this.tenant = tenant;
         this.bookingDate = LocalDate.of(year, month, day);
         this.max = max;
         this.available = max;

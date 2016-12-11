@@ -1,6 +1,7 @@
 package com.litereaction.doggydaycare.repository;
 
 import com.litereaction.doggydaycare.model.Availability;
+import com.litereaction.doggydaycare.model.Tenant;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.transaction.Transactional;
@@ -15,6 +16,6 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Stri
 
     public List<Availability> findByBookingDate(LocalDate bookingDate);
 
-
+    public List<Availability> findByBookingDateAndTenant(LocalDate bookingDate, Tenant tenant);
 
 }

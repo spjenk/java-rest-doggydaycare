@@ -27,25 +27,8 @@ public class AvailabilityController {
     @Autowired
     AvailabilityRepository availabilityRepository;
 
-    @RequestMapping(method = RequestMethod.GET)
-    @ApiOperation(value = "Get availability")
-    public List<Availability> get(@ApiParam(value = "year") Integer year,
-                                  @ApiParam(value = "month (1-12)") Integer month,
-                                  @ApiParam(value = "day (1-31)") Integer day) {
-
-        List<Availability> availabilities;
-
-        if (StringUtils.isEmpty(year)) {
-            availabilities = availabilityRepository.findAll();
-        } else {
-            availabilities = availabilityRepository.findByBookingDate(LocalDate.of(year, month, day));
-        }
-
-        return availabilities;
-    }
-
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    @ApiOperation(value = "Get availability by date")
+    @ApiOperation(value = "Get availability by id")
     public ResponseEntity<Availability> availability(@PathVariable String id) {
         validateAvailability(id);
         Availability availability = availabilityRepository.findOne(id);

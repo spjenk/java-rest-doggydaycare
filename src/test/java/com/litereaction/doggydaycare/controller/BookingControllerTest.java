@@ -3,9 +3,11 @@ package com.litereaction.doggydaycare.controller;
 import com.litereaction.doggydaycare.model.Availability;
 import com.litereaction.doggydaycare.model.Booking;
 import com.litereaction.doggydaycare.model.Pet;
+import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.AvailabilityRepository;
 import com.litereaction.doggydaycare.repository.BookingRepository;
 import com.litereaction.doggydaycare.repository.PetRepository;
+import com.litereaction.doggydaycare.repository.TenantRepository;
 import com.litereaction.doggydaycare.util.ModelUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +49,9 @@ public class BookingControllerTest {
     private PetRepository petRepository;
 
     @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
     private AvailabilityRepository availabiltyRepository;
 
     @Before
@@ -54,6 +59,7 @@ public class BookingControllerTest {
         this.bookingRepository.deleteAllInBatch();
         this.availabiltyRepository.deleteAllInBatch();
         this.petRepository.deleteAllInBatch();
+        this.tenantRepository.deleteAllInBatch();
     }
 
     @After
@@ -61,6 +67,7 @@ public class BookingControllerTest {
         this.bookingRepository.deleteAllInBatch();
         this.availabiltyRepository.deleteAllInBatch();
         this.petRepository.deleteAllInBatch();
+        this.tenantRepository.deleteAllInBatch();
     }
 
     @Test
@@ -68,19 +75,21 @@ public class BookingControllerTest {
 
         Pet spot = this.petRepository.save(new Pet("Spot", 1));
 
-        Booking booking = new Booking(createAvailability(0), spot);
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
+        Booking booking = new Booking(availability, spot);
         ResponseEntity<Booking> response = this.restTemplate.postForEntity(BASE_URL, booking, Booking.class);
 
         assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertNotNull(response.getBody());
 
         Booking bookingResult = response.getBody();
-        assertThat(bookingResult.getAvailability().getId(), equalTo(ModelUtil.getId(BOOKING_DATE)));
+        assertThat(bookingResult.getAvailability().getId(), equalTo(ModelUtil.getAvailabilityId(BOOKING_DATE, tenant.getId())));
         assertThat(bookingResult.getPet().getId(), equalTo(spot.getId()));
         assertThat(bookingResult.getPet().getName(), equalTo(spot.getName()));
 
-        Availability availability = availabiltyRepository.findOne(ModelUtil.getId(BOOKING_DATE));
+        availability = availabiltyRepository.findOne(ModelUtil.getAvailabilityId(BOOKING_DATE, tenant.getId()));
         assertThat(availability.getAvailable(), equalTo(4));
     }
 
@@ -88,7 +97,8 @@ public class BookingControllerTest {
     public void deleteBookingTest() throws Exception {
 
         Pet spot = this.petRepository.save(new Pet("Spot", 1));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         Booking booking = new Booking(availability, spot);
         bookingRepository.save(booking);
@@ -103,18 +113,19 @@ public class BookingControllerTest {
     public void deleteBookingEnsureAvailabilityUpdatesTest() throws Exception {
 
         Pet spot = this.petRepository.save(new Pet("Spot", 1));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         ResponseEntity<Booking> response =
                 this.restTemplate.postForEntity(BASE_URL, new Booking(availability, spot), Booking.class);
         Booking booking = response.getBody();
 
-        availability = availabiltyRepository.findOne(ModelUtil.getId(BOOKING_DATE));
+        availability = availabiltyRepository.findOne(ModelUtil.getAvailabilityId(BOOKING_DATE, tenant.getId()));
         assertThat(availability.getAvailable(), equalTo(MAX-1));
 
         this.restTemplate.delete(getUrl(booking));
 
-        availability = availabiltyRepository.findOne(ModelUtil.getId(BOOKING_DATE));
+        availability = availabiltyRepository.findOne(ModelUtil.getAvailabilityId(BOOKING_DATE, tenant.getId()));
         assertThat(availability.getAvailable(), equalTo(MAX));
     }
 
@@ -122,7 +133,8 @@ public class BookingControllerTest {
     public void createBookingNoAvailabilityTest() throws Exception {
 
         Pet spot = this.petRepository.save(new Pet("Spot", 1));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, 0));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, 0, tenant));
 
         ResponseEntity<Booking> response =
                 this.restTemplate.postForEntity(BASE_URL, new Booking(availability, spot), Booking.class);
@@ -132,10 +144,6 @@ public class BookingControllerTest {
 
     private String getUrl(Booking booking) {
         return BASE_URL + booking.getId();
-    }
-
-    private Availability createAvailability(int minusDays) {
-        return availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY-minusDays, MAX));
     }
 
 }

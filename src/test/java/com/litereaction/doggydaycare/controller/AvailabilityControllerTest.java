@@ -1,7 +1,9 @@
 package com.litereaction.doggydaycare.controller;
 
 import com.litereaction.doggydaycare.model.Availability;
+import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.AvailabilityRepository;
+import com.litereaction.doggydaycare.repository.TenantRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -29,41 +33,39 @@ public class AvailabilityControllerTest {
     @Autowired
     private AvailabilityRepository availabilityRepository;
 
+    @Autowired
+    private TenantRepository tenantRepository;
+
     @Before
     public void setup() {
         this.availabilityRepository.deleteAllInBatch();
     }
 
     @Test
-    public void findAllAvailabilityTest() throws Exception {
+    public void findAvailabilityByIdTest() throws Exception {
 
-        this.availabilityRepository.save(new Availability(2016,11,16, 5));
-        this.availabilityRepository.save(new Availability(2016,11,17, 5));
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability availability = this.availabilityRepository.save(new Availability(2016,11,16, 5, tenant));
 
-        ResponseEntity<String> response = this.restTemplate.getForEntity(BASE_URL, String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity("/availability/" + availability.getId(), String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
-        assertThat(response.getBody(), containsString("\"id\":\"20161116\",\"max\":5,\"available\":5"));
-        assertThat(response.getBody(), containsString("\"id\":\"20161117\",\"max\":5,\"available\":5"));
+        assertThat(response.getBody(), containsString(availability.getId()));
     }
 
     @Test
-    public void findBookingByDateTest() throws Exception {
+    public void findAvailabilityWithWrongIdTest() throws Exception {
 
-        this.availabilityRepository.save(new Availability(2016,11,16, 5));
-        this.availabilityRepository.save(new Availability(2016,11,17, 5));
-
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity("/availability?year=2016&month=11&day=16", String.class);
-        assertNotNull(response.getBody());
-        assertThat(response.getBody(), containsString("\"id\":\"20161116\",\"max\":5,\"available\":5"));
-        assertThat(response.getBody(), not(containsString("id\":\"20161117")));
+        ResponseEntity<String> response = this.restTemplate.getForEntity("/availability/99999", String.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));;
     }
 
     @Test
     public void updateAvailabilityTest() throws Exception {
 
         int max = 5;
-        Availability availability = new Availability(1999,12,31, max);
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Availability availability = new Availability(1999,12,31, max, tenant);
 
         this.availabilityRepository.save(availability);
 
@@ -76,4 +78,5 @@ public class AvailabilityControllerTest {
         assertNotNull(response.getBody());
         assertThat(response.getBody(), containsString("\"max\":6"));
     }
+
 }
