@@ -30,7 +30,6 @@ public class BookingControllerTest {
     private static final int BOOKING_YEAR = 1999;
     private static final int BOOKING_MONTH = 12;
     private static final int BOOKING_DAY = 31;
-    private static final String BOOKING_URL = "/bookings?year=" + BOOKING_YEAR + "&month=" + BOOKING_MONTH + "&day=" + BOOKING_DAY;
     private LocalDate BOOKING_DATE = LocalDate.of(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY);
 
     @Autowired
@@ -155,6 +154,29 @@ public class BookingControllerTest {
 
         assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
     }
+
+    @Test
+    public void getBookingById() throws Exception {
+
+        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
+        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
+        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
+        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
+
+        Booking booking = this.bookingRepository.save(new Booking(availability, spot));
+
+        ResponseEntity<Booking> response = this.restTemplate.getForEntity(getUrl(booking), Booking.class);
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+
+        assertNotNull(response.getBody());
+
+        Booking bookingResult = response.getBody();
+        assertThat(bookingResult.getAvailability().getId(), equalTo(ModelUtil.getAvailabilityId(BOOKING_DATE, tenant.getId())));
+        assertThat(bookingResult.getPet().getId(), equalTo(spot.getId()));
+        assertThat(bookingResult.getPet().getName(), equalTo(spot.getName()));
+
+    }
+
 
     private String getUrl(Booking booking) {
         return BASE_URL + booking.getId();
