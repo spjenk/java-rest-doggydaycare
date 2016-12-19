@@ -1,4 +1,4 @@
-group 'com.litereaction.doggydaycare'
+group 'com.litereaction.pawspassport'
 version '1.0-SNAPSHOT'
 
 buildscript {
