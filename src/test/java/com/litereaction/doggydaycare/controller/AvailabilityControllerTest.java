@@ -36,11 +36,6 @@ public class AvailabilityControllerTest {
     @Autowired
     private TenantRepository tenantRepository;
 
-    @Before
-    public void setup() {
-        this.availabilityRepository.deleteAllInBatch();
-    }
-
     @Test
     public void findAvailabilityByIdTest() throws Exception {
 

@@ -1,5 +1,7 @@
 package com.litereaction.doggydaycare.controller;
 
+import com.litereaction.doggydaycare.helper.OwnerUtil;
+import com.litereaction.doggydaycare.helper.PetUtil;
 import com.litereaction.doggydaycare.model.*;
 import com.litereaction.doggydaycare.repository.*;
 import com.litereaction.doggydaycare.util.ModelUtil;
@@ -50,33 +52,21 @@ public class BookingControllerTest {
     @Autowired
     private OwnerRepository ownerRepository;
 
+    private Tenant tenant;
+    private Owner owner;
+    private Pet spot;
+    private Availability availability;
+
     @Before
     public void setup() {
-        this.bookingRepository.deleteAllInBatch();
-        this.availabiltyRepository.deleteAllInBatch();
-        this.petRepository.deleteAllInBatch();
-        this.ownerRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
-    }
-
-    @After
-    public void teardown() {
-        this.bookingRepository.deleteAllInBatch();
-        this.availabiltyRepository.deleteAllInBatch();
-        this.petRepository.deleteAllInBatch();
-        this.ownerRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
+        tenant = this.tenantRepository.save(new Tenant("PnR"));
+        owner = this.ownerRepository.save(OwnerUtil.getRandomOwner(tenant));
+        spot = this.petRepository.save(PetUtil.getRandomPet(owner));
+        availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
     }
 
     @Test
     public void createBookingTest() throws Exception {
-
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
-
-        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
-
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         Booking booking = new Booking(availability, spot);
         ResponseEntity<Booking> response = this.restTemplate.postForEntity(BASE_URL, booking, Booking.class);
@@ -103,12 +93,6 @@ public class BookingControllerTest {
     @Test
     public void deleteBookingTest() throws Exception {
 
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
-
-        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
-
         Booking booking = new Booking(availability, spot);
         bookingRepository.save(booking);
 
@@ -120,12 +104,6 @@ public class BookingControllerTest {
 
     @Test
     public void deleteBookingEnsureAvailabilityUpdatesTest() throws Exception {
-
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
-
-        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         ResponseEntity<Booking> response =
                 this.restTemplate.postForEntity(BASE_URL, new Booking(availability, spot), Booking.class);
@@ -143,11 +121,8 @@ public class BookingControllerTest {
     @Test
     public void createBookingNoAvailabilityTest() throws Exception {
 
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
-
-        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, 0, tenant));
+        availability.setAvailable(0);
+        availabiltyRepository.save(availability);
 
         ResponseEntity<Booking> response =
                 this.restTemplate.postForEntity(BASE_URL, new Booking(availability, spot), Booking.class);
@@ -157,11 +132,6 @@ public class BookingControllerTest {
 
     @Test
     public void getBookingById() throws Exception {
-
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner("Owner Name", "Owner@email.com", tenant));
-        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
-        Availability availability = availabiltyRepository.save(new Availability(BOOKING_YEAR, BOOKING_MONTH, BOOKING_DAY, MAX, tenant));
 
         Booking booking = this.bookingRepository.save(new Booking(availability, spot));
 
@@ -174,7 +144,6 @@ public class BookingControllerTest {
         assertThat(bookingResult.getAvailability().getId(), equalTo(ModelUtil.getAvailabilityId(BOOKING_DATE, tenant.getId())));
         assertThat(bookingResult.getPet().getId(), equalTo(spot.getId()));
         assertThat(bookingResult.getPet().getName(), equalTo(spot.getName()));
-
     }
 
 

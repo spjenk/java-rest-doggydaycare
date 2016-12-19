@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -33,23 +34,15 @@ public class TenantControllerTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private OwnerRepository ownerRepository;
-
-    @Autowired
     private TenantRepository tenantRepository;
 
     @Autowired
     AvailabilityRepository availabilityRepository;
 
-    @Before
-    public void setup() {
-        this.ownerRepository.deleteAllInBatch();
-        this.availabilityRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
-    }
 
     @Test
     public void findAllTest() {
+
         Tenant t1 = tenantRepository.save(new Tenant("T1"));
         Tenant t2 = tenantRepository.save(new Tenant("T2"));
 
@@ -94,8 +87,6 @@ public class TenantControllerTest {
         assertThat(response.getStatusCode() , equalTo(HttpStatus.BAD_REQUEST));
 
     }
-
-
 
     @Test
     public void findAvailabilityByDateTest() throws Exception {

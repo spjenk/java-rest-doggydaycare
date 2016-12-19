@@ -1,12 +1,14 @@
 package com.litereaction.doggydaycare.controller;
 
+import com.litereaction.doggydaycare.helper.OwnerUtil;
+import com.litereaction.doggydaycare.helper.PetUtil;
 import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.model.Pet;
 import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.PetRepository;
 import com.litereaction.doggydaycare.repository.TenantRepository;
-import org.junit.After;
+import com.litereaction.doggydaycare.types.Status;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,80 +43,72 @@ public class PetsControllerTest {
     TenantRepository tenantRepository;
 
     private Tenant tenant = new Tenant("PnR");
-    private Owner owner = null;
+    private Owner owner;
+    private Pet spot;
+    private Pet rover;
 
     @Before
     public void setup() {
-        this.petRepository.deleteAllInBatch();
-        this.ownerRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
 
         tenant = this.tenantRepository.save(tenant);
-        owner = this.ownerRepository.save(new Owner("OwnerName", "owner@email.com", tenant));
-    }
-
-    @After
-    public void teardown() {
-        this.petRepository.deleteAllInBatch();
-        this.ownerRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
+        owner = this.ownerRepository.save(OwnerUtil.getRandomOwner(tenant));
+        spot = this.petRepository.save(PetUtil.getRandomPet(owner));
+        rover = this.petRepository.save(PetUtil.getRandomPet(owner));
     }
 
     @Test
     public void findAllPetsTest() throws Exception {
 
-        Pet spot = this.petRepository.save(new Pet("Spot", 1, owner));
-        Pet rover = this.petRepository.save(new Pet("Rover", 2, owner));
-
         ResponseEntity<String> response = this.restTemplate.getForEntity("/pets", String.class);
         assertNotNull(response.getBody());
-        assertThat(response.getBody(), containsString("\"id\":" + spot.getId() + ",\"name\":\"Spot\""));
-        assertThat(response.getBody(), containsString("\"id\":" + rover.getId() + ",\"name\":\"Rover\""));
+        assertThat(response.getBody(), containsString("\"id\":" + spot.getId()));
+        assertThat(response.getBody(), containsString(spot.getName()));
+        assertThat(response.getBody(), containsString(spot.getBirthDate()));
+        assertThat(response.getBody(), containsString("\"id\":" + rover.getId()));
+        assertThat(response.getBody(), containsString(rover.getName()));
+        assertThat(response.getBody(), containsString(rover.getBirthDate()));
     }
 
     @Test
     public void findPetByNameTest() throws Exception {
 
-        this.petRepository.save(new Pet("Spot", 1, owner));
-        this.petRepository.save(new Pet("Rover", 2, owner));
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity("/pets?name=Spot", String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity("/pets?name=" + spot.getName(), String.class);
         assertNotNull(response.getBody());
-        assertThat(response.getBody(), containsString("Spot"));
-        assertThat(response.getBody(), not(containsString("Rover")));
+        assertThat(response.getBody(), containsString(spot.getName()));
+        assertThat(response.getBody(), not(containsString(rover.getName())));
     }
 
     @Test
     public void findPetByIdTest() throws Exception {
 
-        String petName = "Spot";
-        int petAge = 5;
-
-        Pet pet = this.petRepository.save(new Pet(petName, petAge, owner));
-
-        String url = BASE_URL + pet.getId();
+        String url = BASE_URL + spot.getId();
 
         ResponseEntity<Pet> response = this.restTemplate.getForEntity(url, Pet.class);
         assertThat(response.getStatusCode() , equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
 
         Pet petResponse = response.getBody();
-        assertThat(petResponse.getId(), equalTo(pet.getId()));
-        assertThat(petResponse.getName(), equalTo(petName));
-        assertThat(petResponse.getAge(), equalTo(petAge));
+        assertThat(petResponse.getId(), equalTo(spot.getId()));
+        assertThat(petResponse.getName(), equalTo(spot.getName()));
+        assertThat(petResponse.getBirthDate(), equalTo(spot.getBirthDate()));
+        assertThat(petResponse.getStatus(), equalTo(Status.ACTIVE));
     }
 
     @Test
     public void deleteOwnerTest() throws Exception {
 
-        Pet pet = this.petRepository.save(new Pet("Spot", 5, owner));
-
-        String url = BASE_URL + pet.getId();
+        String url = BASE_URL + spot.getId();
 
         this.restTemplate.delete(url);
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
         assertThat(response.getStatusCode() , equalTo(HttpStatus.NOT_FOUND));
+
+        Pet deletedPet = petRepository.findOne(spot.getId());
+        assertThat(deletedPet.getId(), equalTo(spot.getId()));
+        assertThat(deletedPet.getName(), equalTo(spot.getName()));
+        assertThat(deletedPet.getBirthDate(), equalTo(spot.getBirthDate()));
+        assertThat(deletedPet.getStatus(), equalTo(Status.DELETED));
 
     }
 }

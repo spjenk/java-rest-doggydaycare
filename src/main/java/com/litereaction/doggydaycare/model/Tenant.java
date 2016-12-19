@@ -1,5 +1,7 @@
 package com.litereaction.doggydaycare.model;
 
+import com.litereaction.doggydaycare.types.Status;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -15,7 +17,10 @@ public class Tenant {
 
     private String locale;
 
+    private Status status;
+
     public Tenant() {
+
     }
 
     public Tenant(String name) {
@@ -45,4 +50,8 @@ public class Tenant {
     public void setLocale(String locale) {
         this.locale = locale;
     }
+
+    public Status getStatus() { return status; }
+
+    public void setStatus(Status status) { this.status = status; }
 }

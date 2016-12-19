@@ -1,10 +1,11 @@
 package com.litereaction.doggydaycare.controller;
 
+import com.litereaction.doggydaycare.helper.OwnerUtil;
 import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.model.Tenant;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
 import com.litereaction.doggydaycare.repository.TenantRepository;
-import org.junit.After;
+import com.litereaction.doggydaycare.types.Status;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,80 +36,65 @@ public class OwnerControllerTest {
     @Autowired
     private TenantRepository tenantRepository;
 
+    private Tenant tenant;
+
+    private Owner owner1;
+
+    private Owner owner2;
+
     @Before
     public void setup() {
-        this.ownerRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
-    }
-
-    @After
-    public void teardown() {
-        this.ownerRepository.deleteAllInBatch();
-        this.tenantRepository.deleteAllInBatch();
+        this.tenant = this.tenantRepository.save(new Tenant("PnR"));
+        this.owner1 = this.ownerRepository.save(OwnerUtil.getRandomOwner(tenant));
+        this.owner2 = this.ownerRepository.save(OwnerUtil.getRandomOwner(tenant));
     }
 
     @Test
     public void findAllOwnersTest() throws Exception {
 
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        this.ownerRepository.save(new Owner("Jack", "aaa@edf.com", tenant));
-        this.ownerRepository.save(new Owner("Jill", "bbb@edf.com", tenant));
-
         ResponseEntity<String> response = this.restTemplate.getForEntity("/owners", String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
 
-        assertThat(response.getBody(), containsString("Jack"));
-        assertThat(response.getBody(), containsString("Jill"));
+        assertThat(response.getBody(), containsString(owner1.getName()));
+        assertThat(response.getBody(), containsString(owner2.getName()));
     }
 
     @Test
     public void findOwnerByNameTest() throws Exception {
 
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        this.ownerRepository.save(new Owner("Jack", "aaa@edf.com", tenant));
-        this.ownerRepository.save(new Owner("Jill", "bbb@edf.com", tenant));
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?name=Jack", String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?name=" + owner1.getName(), String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
 
-        assertThat(response.getBody(), containsString("\"name\":\"Jack\""));
-        assertThat(response.getBody(), not(containsString("Jill")));
+        assertThat(response.getBody(), containsString(owner1.getName()));
+        assertThat(response.getBody(), not(containsString(owner2.getName())));
     }
 
     @Test
     public void findOwnerByEmailTest() throws Exception {
 
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        this.ownerRepository.save(new Owner("Jack", "aaa@edf.com", tenant));
-        this.ownerRepository.save(new Owner("Jill", "Jill@Hill.com", tenant));
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?email=Jill@Hill.com", String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity("/owners?email=" + owner2.getEmail(), String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
 
-        assertThat(response.getBody(), containsString("\"name\":\"Jill\""));
-        assertThat(response.getBody(), containsString("\"email\":\"Jill@Hill.com\""));
-        assertThat(response.getBody(), not(containsString("Jack")));
+        assertThat(response.getBody(), containsString(owner2.getName()));
+        assertThat(response.getBody(), containsString(owner2.getEmail()));
+        assertThat(response.getBody(), not(containsString(owner1.getName())));
     }
 
     @Test
     public void getOwnerByIdTest() throws Exception {
 
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-
-        Owner owner = this.ownerRepository.save(new Owner("Bill", "abc@edf.com", tenant));
-
-        String url = BASE_URL + owner.getId();
+        String url = BASE_URL + owner1.getId();
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
         assertNotNull(response.getBody());
 
-        assertThat(response.getBody(), containsString("\"name\":\"Bill\""));
-        assertThat(response.getBody(), containsString("\"email\":\"abc@edf.com\""));
-        assertThat(response.getBody(), not(containsString("Jack")));
+        assertThat(response.getBody(), containsString(owner1.getName()));
+        assertThat(response.getBody(), containsString(owner1.getEmail()));
+        assertThat(response.getBody(), not(containsString(owner2.getName())));
     }
 
     @Test
@@ -118,44 +104,30 @@ public class OwnerControllerTest {
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
-
     }
 
     @Test
     public void updateOwnerTest() throws Exception {
 
-        String ownerName = "Jack";
-        String ownerEmail = "abc@edf.com";
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner(ownerName, ownerEmail, tenant));
+        owner1.setDisplayName("JJ");
 
-        String url = BASE_URL + owner.getId();
+        this.restTemplate.put(BASE_URL + owner1.getId(), owner1);
 
-        owner.setDisplayName("JJ");
-
-        this.restTemplate.put(url, owner);
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity(BASE_URL + owner1.getId(), String.class);
         assertNotNull(response.getBody());
         assertThat(response.getBody(), containsString("\"displayName\":\"JJ\""));
-
     }
 
     @Test
     public void deleteOwnerTest() throws Exception {
 
-        String ownerName = "Jack";
-        String ownerEmail = "abc@edf.com";
-        Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
-        Owner owner = this.ownerRepository.save(new Owner(ownerName, ownerEmail, tenant));
+        this.restTemplate.delete(BASE_URL + owner1.getId());
 
-        String url = BASE_URL + owner.getId();
-
-        this.restTemplate.delete(url);
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity(BASE_URL + owner1.getId(), String.class);
         assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND));
 
+        Owner deletedOwner = this.ownerRepository.findOne(owner1.getId());
+        assertThat(deletedOwner.getName(), equalTo(owner1.getName()));
+        assertThat(deletedOwner.getStatus(), equalTo(Status.DELETED));
     }
-
 }

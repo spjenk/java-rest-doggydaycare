@@ -1,5 +1,6 @@
 package com.litereaction.doggydaycare.model;
 
+import com.litereaction.doggydaycare.helper.PetUtil;
 import com.litereaction.doggydaycare.util.ModelUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -15,14 +16,14 @@ public class BookingTest {
     public void createBookingFromConstructorTest() {
 
         //when
-        String name = "Spot";
         LocalDate date = LocalDate.of(1999,12,31);
-        Booking booking = new Booking(new Availability(1999, 12, 31, 5, tenant), new Pet(name, 1, owner));
+        Pet pet = PetUtil.getRandomPet(owner);
+        Booking booking = new Booking(new Availability(1999, 12, 31, 5, tenant), pet);
 
         //then
         Assert.assertEquals(0, booking.getId());
         Assert.assertEquals(date, booking.getAvailability().getBookingDate());
-        Assert.assertEquals(name, booking.getPet().getName());
+        Assert.assertEquals(pet.getName(), booking.getPet().getName());
     }
 
     @Test
@@ -32,11 +33,12 @@ public class BookingTest {
         Booking booking = new Booking();
         booking.setId(1);
         booking.setAvailability(new Availability(1999, 12, 31, 5, tenant));
-        booking.setPet(new Pet("Spot", 1, owner));
+        Pet pet = PetUtil.getRandomPet(owner);
+        booking.setPet(pet);
 
         //then
         Assert.assertEquals(1, booking.getId());
         Assert.assertEquals(5, booking.getAvailability().getMax());
-        Assert.assertEquals("Spot", booking.getPet().getName());
+        Assert.assertEquals(pet.getName(), booking.getPet().getName());
     }
 }

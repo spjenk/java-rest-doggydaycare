@@ -1,6 +1,7 @@
 package com.litereaction.doggydaycare.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.litereaction.doggydaycare.types.Status;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -20,6 +21,8 @@ public class Owner {
 
     private String displayName;
 
+    private Status status;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Tenant tenant;
@@ -31,6 +34,7 @@ public class Owner {
         this.name = name;
         this.email = email;
         this.tenant = tenant;
+        this.status = Status.ACTIVE;
     }
 
     public String getDisplayName() {
@@ -71,4 +75,7 @@ public class Owner {
         this.tenant = tenant;
     }
 
+    public Status getStatus() { return status; }
+
+    public void setStatus(Status status) { this.status = status; }
 }

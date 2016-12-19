@@ -3,6 +3,7 @@ package com.litereaction.doggydaycare.controller;
 import com.litereaction.doggydaycare.exceptions.NotFoundException;
 import com.litereaction.doggydaycare.model.Owner;
 import com.litereaction.doggydaycare.repository.OwnerRepository;
+import com.litereaction.doggydaycare.types.Status;
 import com.litereaction.doggydaycare.util.httpUtil;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -85,10 +86,11 @@ public class OwnersController {
     @ApiOperation(value = "Remove a owner")
     public ResponseEntity delete(@PathVariable long id) {
 
-        validateOwner(id);
+        Owner owner = validateOwner(id);
+        owner.setStatus(Status.DELETED);
 
         try {
-            ownerRepository.delete(id);
+            ownerRepository.save(owner);
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.badRequest().build();
@@ -97,10 +99,14 @@ public class OwnersController {
         return ResponseEntity.ok().build();
     }
 
-    private void validateOwner(long id) {
-        this.ownerRepository.findById(id).orElseThrow(
+    private Owner validateOwner(long id) {
+        Owner owner = this.ownerRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(id));
+        if (owner.getStatus().equals(Status.DELETED)) {
+            throw new NotFoundException(id);
+        }
         log.info("Found owner:" + id);
+        return owner;
     }
 
 }

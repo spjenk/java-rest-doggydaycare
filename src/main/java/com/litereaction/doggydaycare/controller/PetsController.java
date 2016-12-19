@@ -3,6 +3,7 @@ package com.litereaction.doggydaycare.controller;
 import com.litereaction.doggydaycare.exceptions.NotFoundException;
 import com.litereaction.doggydaycare.model.Pet;
 import com.litereaction.doggydaycare.repository.PetRepository;
+import com.litereaction.doggydaycare.types.Status;
 import com.litereaction.doggydaycare.util.httpUtil;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -53,10 +54,11 @@ public class PetsController {
     @ApiOperation(value = "Remove a pet from the repository")
     public ResponseEntity delete(@PathVariable long id) {
 
-        validatePetExists(id);
+        Pet pet = validatePetExists(id);
+        pet.setStatus(Status.DELETED);
 
         try {
-            petRepository.delete(id);
+            petRepository.save(pet);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -64,10 +66,14 @@ public class PetsController {
         }
     }
 
-    private void validatePetExists(long id) {
-        this.petRepository.findById(id).orElseThrow(
+    private Pet validatePetExists(long id) {
+        Pet pet = this.petRepository.findById(id).orElseThrow(
                 () -> new NotFoundException(id));
+        if (pet.getStatus().equals(Status.DELETED)) {
+            throw new NotFoundException(id);
+        }
         log.info("Found pet:" + id);
+        return pet;
     }
 
 }
