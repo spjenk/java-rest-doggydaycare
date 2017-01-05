@@ -18,4 +18,6 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Stri
 
     public List<Availability> findByBookingDateAndTenant(LocalDate bookingDate, Tenant tenant);
 
+    public List<Availability> findByTenantOrderByBookingDate(Tenant tenant);
+
 }

@@ -5,6 +5,7 @@ import com.litereaction.pawspassport.model.Owner;
 import com.litereaction.pawspassport.model.Tenant;
 import com.litereaction.pawspassport.repository.AvailabilityRepository;
 import com.litereaction.pawspassport.repository.TenantRepository;
+import com.litereaction.pawspassport.types.Status;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import static org.junit.Assert.assertThat;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class TenantControllerTest {
 
+    public static final String TENANTS = "/tenants/";
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -36,14 +38,29 @@ public class TenantControllerTest {
 
 
     @Test
+    public void createTentantTest() {
+        Tenant tenant = new Tenant("T1");
+
+        ResponseEntity<Tenant> response =
+                this.restTemplate.postForEntity(TENANTS, tenant, Tenant.class);
+
+        assertThat(response.getStatusCode() , equalTo(HttpStatus.CREATED));
+        assertNotNull(response.getBody());
+
+        Tenant tenantCreated = response.getBody();
+        assertThat(tenantCreated.getName(), equalTo("T1"));
+        assertThat(tenantCreated.getStatus(), equalTo(Status.ACTIVE));
+    }
+
+
+    @Test
+
     public void findAllTest() {
 
         Tenant t1 = tenantRepository.save(new Tenant("T1"));
         Tenant t2 = tenantRepository.save(new Tenant("T2"));
 
-        String url = "/tenants/";
-
-        ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = this.restTemplate.getForEntity(TENANTS, String.class);
         assertNotNull(response.getBody());
         assertThat(response.getBody(), containsString("\"id\":" + t1.getId() + ",\"name\":\"T1\""));
         assertThat(response.getBody(), containsString("\"id\":" + t2.getId() + ",\"name\":\"T2\""));
@@ -57,7 +74,7 @@ public class TenantControllerTest {
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
         Owner owner = new Owner(ownerName, ownerEmail, tenant);
 
-        String url = "/tenants/" + tenant.getId() + "/owners";
+        String url = TENANTS + tenant.getId() + "/owners";
         ResponseEntity<Owner> response =
                 this.restTemplate.postForEntity(url, owner, Owner.class);
 
@@ -74,7 +91,7 @@ public class TenantControllerTest {
 
         Tenant tenant = this.tenantRepository.save(new Tenant("PnR"));
 
-        String url = "/tenants/" + tenant.getId() + "/owners";
+        String url = TENANTS + tenant.getId() + "/owners";
 
         ResponseEntity<Owner> response =
                 this.restTemplate.postForEntity(url, new Owner(), Owner.class);
@@ -90,7 +107,7 @@ public class TenantControllerTest {
         Availability a1 = this.availabilityRepository.save(new Availability(2016,11,16, 5, tenant));
         Availability a2 = this.availabilityRepository.save(new Availability(2016,11,17, 5, tenant));
 
-        String url = "/tenants/" + tenant.getId() + "/availability?year=2016&month=11&day=16";
+        String url = TENANTS + tenant.getId() + "/availability?year=2016&month=11&day=16";
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
         assertNotNull(response.getBody());

@@ -22,7 +22,7 @@ public class AvailabilityTest {
         //then
         Assert.assertEquals(ModelUtil.getAvailabilityId(date, tenant.getId()), availability.getId());
         Assert.assertEquals(date, availability.getBookingDate());
-        Assert.assertEquals(max, availability.getMax());
+        Assert.assertEquals(max, availability.getCapacity());
         Assert.assertEquals(max, availability.getAvailable());
     }
 
@@ -38,13 +38,13 @@ public class AvailabilityTest {
         Availability availability = new Availability();
         availability.setId(ModelUtil.getAvailabilityId(date, tenant.getId()));
         availability.setBookingDate(1999,12,31);
-        availability.setMax(max);
+        availability.setCapacity(max);
         availability.setAvailable(available);
 
         //then
         Assert.assertEquals(ModelUtil.getAvailabilityId(date, tenant.getId()), availability.getId());
         Assert.assertEquals(date, availability.getBookingDate());
-        Assert.assertEquals(max, availability.getMax());
+        Assert.assertEquals(max, availability.getCapacity());
         Assert.assertEquals(available, availability.getAvailable());
     }
 }

@@ -65,7 +65,7 @@ public class AvailabilityControllerTest {
 
         String url = BASE_URL + availability.getId();
 
-        availability.setMax(6);
+        availability.setCapacity(6);
         this.restTemplate.put(url, availability);
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);

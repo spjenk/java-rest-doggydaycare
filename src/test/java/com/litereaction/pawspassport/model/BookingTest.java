@@ -37,7 +37,7 @@ public class BookingTest {
 
         //then
         Assert.assertEquals(1, booking.getId());
-        Assert.assertEquals(5, booking.getAvailability().getMax());
+        Assert.assertEquals(5, booking.getAvailability().getCapacity());
         Assert.assertEquals(pet.getName(), booking.getPet().getName());
     }
 }

@@ -36,7 +36,7 @@ public class AvailabilityController {
 
         Availability modifyAvailability = validateAvailability(id);
         modifyAvailability.setAvailable(availability.getAvailable());
-        modifyAvailability.setMax(availability.getMax());
+        modifyAvailability.setCapacity(availability.getCapacity());
 
         try {
             Availability result = availabilityRepository.save(modifyAvailability);

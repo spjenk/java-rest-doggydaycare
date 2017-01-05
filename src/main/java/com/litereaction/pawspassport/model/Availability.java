@@ -1,6 +1,7 @@
 package com.litereaction.pawspassport.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.litereaction.pawspassport.util.ModelUtil;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -21,7 +22,7 @@ public class Availability {
     private LocalDate bookingDate;
 
     @Column(nullable = false)
-    private int max;
+    private int capacity;
 
     @Column(nullable = false)
     private int available;
@@ -30,12 +31,20 @@ public class Availability {
 
     }
 
-    public Availability(int year, int month, int day, int max, Tenant tenant){
+    public Availability(int year, int month, int day, int capacity, Tenant tenant){
         this.id = "" + year + month + day + tenant.getId();
         this.tenant = tenant;
         this.bookingDate = LocalDate.of(year, month, day);
-        this.max = max;
-        this.available = max;
+        this.capacity = capacity;
+        this.available = capacity;
+    }
+
+    public Availability(LocalDate date, int capacity, Tenant tenant){
+        this.id = ModelUtil.getAvailabilityId(date, tenant.getId());
+        this.tenant = tenant;
+        this.bookingDate = date;
+        this.capacity = capacity;
+        this.available = capacity;
     }
 
     public String getId() {
@@ -58,12 +67,12 @@ public class Availability {
         this.bookingDate = LocalDate.of(year, month, day);
     }
 
-    public int getMax() {
-        return max;
+    public int getCapacity() {
+        return capacity;
     }
 
-    public void setMax(int max) {
-        this.max = max;
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     public int getAvailable() {
