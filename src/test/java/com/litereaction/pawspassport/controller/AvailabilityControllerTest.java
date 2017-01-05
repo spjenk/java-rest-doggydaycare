@@ -70,7 +70,7 @@ public class AvailabilityControllerTest {
 
         ResponseEntity<String> response = this.restTemplate.getForEntity(url, String.class);
         assertNotNull(response.getBody());
-        assertThat(response.getBody(), containsString("\"max\":6"));
+        assertThat(response.getBody(), containsString("\"capacity\":6"));
     }
 
 }
